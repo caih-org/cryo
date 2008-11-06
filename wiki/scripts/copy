@@ -10,4 +10,11 @@ copy INSTALL
 copy TODO
 copy ChangeLog
 copy COPYING
-copy docs/example.py EXAMPLE
+copy docs/example.py EXAMPLETMP
+
+rm EXAMPLE.wiki
+echo "{{{" >> EXAMPLE.wiki
+cat EXAMPLETMP.wiki >> EXAMPLE.wiki
+echo "}}}" >> EXAMPLE.wiki
+rm EXAMPLETMP.wiki
+

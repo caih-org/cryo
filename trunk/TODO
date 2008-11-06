@@ -1,2 +1,3 @@
-- "Many" relationships, inverse, etc.
- 
+  * "Many" relationships, inverse, etc.
+  * More backends: mysql, csv, etc
+
