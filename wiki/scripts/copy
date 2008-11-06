@@ -1,0 +1,13 @@
+#!/bin/sh
+
+function copy {
+	B=${2:-"$1"}
+	cp ../trunk/$1 $B.wiki
+}
+
+copy README
+copy INSTALL
+copy TODO
+copy ChangeLog
+copy COPYING
+copy docs/example.py EXAMPLE
