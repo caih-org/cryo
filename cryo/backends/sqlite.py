@@ -58,7 +58,7 @@ class SQLiteConnectedBackend(StandardSQLConnectedBackend):
         self.cursor = self.connection.cursor()
 
     def createtable(self, table):
-        query = StandardSQLConnectedBackend.createtable(self, table)
+        query = self._createtable(table)
         self.cursor.execute(query)
         self.insert(table)
         return table
@@ -74,11 +74,11 @@ class SQLiteConnectedBackend(StandardSQLConnectedBackend):
             return 'integer'
 
     def insert(self, *objs):
-        for query, values in StandardSQLConnectedBackend.insert(self, *objs):
+        for query, values in self._insert(*objs):
             self.cursor.execute(query, [_unwrap(value) for value in values])
 
     def delete(self, *objs):
-        for query, values in StandardSQLConnectedBackend.delete(self, *objs):
+        for query, values in self._delete(*objs):
             self.cursor.execute(query, [_unwrap(value) for value in values])
 
     def query(self, select):
@@ -89,8 +89,8 @@ class SQLiteConnectedBackend(StandardSQLConnectedBackend):
                     util.fullname_underscore(column.datatype.__class__))
                    for (name, column) in table.columns.items()]
 
-        query, values = StandardSQLConnectedBackend._query(self, select,
-                                                           columns=columns)
+        query, values = self._query(select, columns=columns)
+
         try:
             results = self.cursor.execute(query, [_unwrap(value)
                                                   for value in values])

@@ -48,7 +48,7 @@ class StandardSQLConnectedBackend(ConnectedBackend):
 
         return long(str(int(hashkey.hexdigest(), 16))[:18])
 
-    def createtable(self, table):
+    def _createtable(self, table):
         columndefinitions = ["'%s' %s" %
                              (column.name, self.gettype(column.datatype))
                              for column in table.columns.values()]
@@ -59,7 +59,7 @@ class StandardSQLConnectedBackend(ConnectedBackend):
     def gettype(self, datatype):
         pass
 
-    def insert(self, *objs):
+    def _insert(self, *objs):
         for obj in util.flatten(objs):
             table = self.session.gettable(obj)
 
@@ -75,7 +75,7 @@ class StandardSQLConnectedBackend(ConnectedBackend):
                      % (table.name, ", ".join(names), options))
             yield query, values
 
-    def delete(self, *objs):
+    def _delete(self, *objs):
         for obj in util.flatten(objs):
             table = self.session.gettable(obj)
             query = "DELETE FROM '%s' WHERE '%s' == ?" % (table.name,
