@@ -12,11 +12,11 @@ from datetime import datetime
 import psyco
 psyco.full()
 
-from simpyper.session import Session
-from simpyper.metadata import Table, Column
-from simpyper.datatypes import Text, One, Many
-from simpyper.backends.sqlite import SQLiteBackend
-from simpyper.query import Select, Field
+from cryo.session import Session
+from cryo.metadata import Table, Column
+from cryo.datatypes import Text, One, Many
+from cryo.backends.sqlite import SQLiteBackend
+from cryo.query import Select, Field
 
 class A:
 
