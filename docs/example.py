@@ -8,8 +8,7 @@ from __future__ import nested_scopes
 
 from datetime import datetime
 
-import psyco
-psyco.full()
+from enum import Enum
 
 from cryo.session import Session
 from cryo.metadata import Table, Column
@@ -34,6 +33,7 @@ class B:
         self.status1 = status1
         self.status2 = status2
 
+someenum = Enum('a', 'b', 'c')
 
 class C:
 
@@ -45,6 +45,7 @@ class C:
         self.decimal = 1.1
         self.long = 1L
         self.datetime = datetime.now()
+        self.enum = someenum.a
 
 
 class D:
@@ -83,7 +84,6 @@ def init():
         # C
         c_table = Table(C, name='table_c', attributes={'excluded': None},
                         primarykey=('name',))
-        c_table.columns['name'].name = 'c_name'
 
         #########################
         # D
@@ -91,6 +91,7 @@ def init():
         d.a = A()
         d.bs = [B()]
         d_table = Table(D, example=d, primarykey=('name', ))
+        d_table.columns['name'].name = 'd_name'
 
         #########################
         # CREATE TABLES
@@ -145,4 +146,10 @@ def test(connection):
             session.add(A("a%i" % n, "generated"))
 
 if __name__ == '__main__':
+    try:
+        import psyco
+        psyco.full()
+    except ImportError:
+        pass
+
     main()

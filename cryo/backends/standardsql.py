@@ -44,7 +44,7 @@ class StandardSQLConnectedBackend(ConnectedBackend):
                 if value is None:
                     hashkey.update("_cryo_None")
                 else:
-                    hashkey.update(value)
+                    hashkey.update(str(value))
 
         return long(str(int(hashkey.hexdigest(), 16))[:18])
 
@@ -128,15 +128,15 @@ class StandardSQLConnectedBackend(ConnectedBackend):
                                  query2), values
 
         elif type(whereclause) is AndWhereClause:
-            whereclause1 = self._where(whereclause.whereclause1)
-            whereclause2 = self._where(whereclause.whereclause2)
+            whereclause1 = self._where(tablename, whereclause.whereclause1)
+            whereclause2 = self._where(tablename, whereclause.whereclause2)
 
             return "(%s AND %s)" % (whereclause1[0], whereclause2[0]), \
                    whereclause1[1] + whereclause2[1]
 
         elif type(whereclause) is OrWhereClause:
-            whereclause1 = self._where(whereclause.whereclause1)
-            whereclause2 = self._where(whereclause.whereclause2)
+            whereclause1 = self._where(tablename, whereclause.whereclause1)
+            whereclause2 = self._where(tablename, whereclause.whereclause2)
 
             return "(%s OR %s)" % (whereclause1[0], whereclause2[0]), \
                    whereclause1[1] + whereclause2[1]

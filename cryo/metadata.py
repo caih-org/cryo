@@ -22,6 +22,8 @@ class Table(object):
             self.classname = util.fullname(class_)
             self.columns, self.foreignkeys = self._generatecolumns(attributes)
             self.primarykey = primarykey or tuple(sorted(self.columns.keys()))
+            if isinstance(self.primarykey, str):
+                self.primarykey = (self.primarykey, )
 
     def _generatecolumns(self, attributes):
         columns = {}

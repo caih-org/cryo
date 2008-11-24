@@ -23,11 +23,13 @@ class Select(Query):
         self.whereclause = args and CompareWhereClause(value, *args) or value
         return self
 
-    def and_(self, whereclause):
+    def and_(self, value=None, *args):
+        whereclause = args and CompareWhereClause(value, *args) or value
         self.whereclause = AndWhereClause(self.whereclause, whereclause)
         return self
 
-    def or_(self, whereclause):
+    def or_(self, value=None, *args):
+        whereclause = args and CompareWhereClause(value, *args) or value
         self.whereclause = OrWhereClause(self.whereclause, whereclause)
         return self
 

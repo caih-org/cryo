@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-cryo.py: A simple python DB persistence library.
+cryo: A simple python DB persistence library.
 """
 
 from distutils.core import setup
