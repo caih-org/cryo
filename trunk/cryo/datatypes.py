@@ -1,5 +1,7 @@
 from datetime import datetime
 
+import enum
+
 from . import util
 
 
@@ -65,7 +67,7 @@ class Timestamp(Datatype):
 
 class ForeignKey(Datatype):
 
-    def __init__(self, class_, reverse=None, autofetch=False):
+    def __init__(self, class_, reverse, autofetch):
         self.class_ = class_
         self.classname = util.fullname(class_)
         self.reverse = reverse
@@ -98,6 +100,14 @@ class PythonObject(Datatype):
         Datatype.__init__(self)
 
 
+class Enum(Datatype):
+
+    def __init__(self, class_):
+        Datatype.__init__(self)
+        self.class_ = class_
+        self.classname = util.fullname(class_)
+
+
 def guessdbdatatype(value):
     if value == None:
         return None
@@ -117,6 +127,8 @@ def guessdbdatatype(value):
         return Number(10)
     elif _issubclassorinstance(value, datetime):
         return Timestamp()
+    elif _issubclassorinstance(value, enum.Enum):
+        return Enum()
     else:
         return Unknown()
 

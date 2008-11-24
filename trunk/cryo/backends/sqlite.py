@@ -1,4 +1,6 @@
 import sqlite3
+import pickle
+import base64
 
 from .standardsql import StandardSQLBackend, StandardSQLConnectedBackend
 from .. import util
@@ -9,8 +11,10 @@ from .. import datatypes
 def _unwrap(value):
     if not isinstance(value, StandardSQLConnectedBackend.Wrapper):
         return value
+    elif isinstance(value.column.datatype, datatypes.Enum):
+        return value.value.index
     elif isinstance(value.column.datatype, datatypes.PythonObject):
-        return repr(value.value)
+        return base64.encodestring(pickle.dumps(value.value, 2))
     if isinstance(value.column.datatype, datatypes.ForeignKey):
         return value.connectedbackend.gethashkey(value.value)
     else:
@@ -21,7 +25,7 @@ def _convert(class_, connectedbackend):
 
     def convert(value):
         if issubclass(class_, datatypes.PythonObject):
-            return eval(value, connectedbackend.modules)
+            return pickle.loads(base64.decodestring(value))
         elif issubclass(class_, datatypes.One):
             # TODO: handle foreign keys
             return value
