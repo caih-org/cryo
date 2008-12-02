@@ -35,6 +35,7 @@ class StandardSQLConnectedBackend(ConnectedBackend):
                                           'class: %s != %s'
                                           % (fullname, table.classname))
         hashkey = hashlib.sha1()
+        hashkey.update(fullname)
         for attr in attributes:
             value = getattr(obj, attr)
             try:
