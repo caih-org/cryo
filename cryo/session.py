@@ -1,6 +1,5 @@
 from . import exceptions
 from . import util
-from .query import Select, Field
 
 
 class Session(object):
@@ -81,9 +80,12 @@ class Session(object):
     ##########################
     # QUERY
 
-    def get(self, class_, id):
-        # TODO check if already in session an return that one
-        return self.connectedbackend.get(self.gettable(class_=class_), id)
+    def get(self, class_, hashkey):
+        if hashkey in self:
+            return self[hashkey]
+        else:
+            table = self.gettable(class_=class_)
+            return self.connectedbackend.get(table, hashkey)
 
     def queryone(self, query):
         return self.query(query).next()

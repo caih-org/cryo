@@ -67,31 +67,31 @@ class Timestamp(Datatype):
 
 class ForeignKey(Datatype):
 
-    def __init__(self, class_, reverse, autofetch):
+    def __init__(self, class_, inverse, autofetch):
         self.class_ = class_
         self.classname = util.fullname(class_)
-        self.reverse = reverse
+        self.inverse = inverse
         self.autofetch = autofetch
         Datatype.__init__(self)
 
     def __repr__(self):
-        if self.reverse is None:
+        if self.inverse is None:
             return "%s(%s)" % (util.fullname(self.__class__), self.classname)
         else:
             return "%s(%s, '%s')" % (util.fullname(self.__class__),
-                                     self.classname, self.reverse)
+                                         self.classname, self.inverse)
 
 
 class One(ForeignKey):
 
-    def __init__(self, class_, reverse=None, autofetch=True):
-        ForeignKey.__init__(self, class_, reverse, autofetch)
+    def __init__(self, class_, inverse=None, autofetch=True):
+        ForeignKey.__init__(self, class_, inverse, autofetch)
 
 
 class Many(ForeignKey):
 
-    def __init__(self, class_, reverse=None, autofetch=False):
-        ForeignKey.__init__(self, class_, reverse, autofetch)
+    def __init__(self, class_, inverse=None, autofetch=False):
+        ForeignKey.__init__(self, class_, inverse, autofetch)
 
 
 class PythonObject(Datatype):
@@ -127,8 +127,8 @@ def guessdbdatatype(value):
         return Number(10)
     elif _issubclassorinstance(value, datetime):
         return Timestamp()
-    elif _issubclassorinstance(value, enum.Enum):
-        return Enum()
+    elif _issubclassorinstance(value, enum.EnumValue):
+        return Enum(util.getclass(value))
     else:
         return Unknown()
 
