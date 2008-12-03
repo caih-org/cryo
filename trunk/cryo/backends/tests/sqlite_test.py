@@ -1,6 +1,7 @@
 import unittest
 import os
 import os.path
+import traceback
 
 from cryo.backends.sqlite import SQLiteBackend
 
@@ -20,7 +21,7 @@ class SQLiteBackendTestCase(unittest.TestCase, base.BackendTestCase):
                 self.connection.createtables(testclasses.gettables())
         except Exception, e:
             self.tearDown()
-            raise e
+            self.fail(traceback.format_exc())
 
     def tearDown(self):
         if os.path.exists(_PATH):
