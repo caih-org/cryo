@@ -92,6 +92,6 @@ class Session(object):
 
     def query(self, query):
         objs = self.connectedbackend.query(query)
-        for obj in objs:
+        for obj in util.flatten(objs):
             self.add(obj, dirty = False)
             yield obj

@@ -43,17 +43,16 @@ class MemoryConnectedBackend(ConnectedBackend):
 
     def query(self, select):
         table = self.session.connection.tables[select.classname]
-
         if table.name not in self.backend.tables:
             raise exceptions.TableDoesNotExist(table.name)
+
         results = []
         for key, value in self.backend.values.items():
             if isinstance(value, select.class_):
                 results.append(value)
 
         # TODO where(continue), sort, limit
-        
-        print "RRRRRRRRRRRRRR", results
+
         for result in results:
             yield results
 
