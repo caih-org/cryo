@@ -30,6 +30,8 @@ class Session(object):
 
     def rollback(self):
         self.connectedbackend.rollback()
+        self._objs = {}
+        self._deletedobjs = {}
 
     def same(self, objecta, objectb):
         return (self.gethashkey(objecta) == self.gethashkey(objectb))
@@ -53,7 +55,8 @@ class Session(object):
 
     def __delitem__(self, obj):
         hashkey = self.gethashkey(obj)
-        del self._objs[hashkey]
+        if hashkey in self._objs:
+            del self._objs[hashkey]
         self._deletedobjs[hashkey] = obj
 
     def __iter__(self):
