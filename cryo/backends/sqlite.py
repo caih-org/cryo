@@ -80,12 +80,14 @@ class SQLiteConnectedBackend(StandardSQLConnectedBackend):
 
     def insert(self, *objs):
         for query, values in self._insert(*objs):
-            util.QUERY_LOGGER.debug(query, [_unwrap(value) for value in values])
+            util.QUERY_LOGGER.debug("%s => %s" % (query, [_unwrap(value)
+                                                          for value in values]))
             self.cursor.execute(query, [_unwrap(value) for value in values])
 
     def delete(self, *objs):
         for query, values in self._delete(*objs):
-            util.QUERY_LOGGER.debug(query, [_unwrap(value) for value in values])
+            util.QUERY_LOGGER.debug("%s => %s" % (query, [_unwrap(value)
+                                                          for value in values]))
             self.cursor.execute(query, [_unwrap(value) for value in values])
 
     def query(self, select):
@@ -99,7 +101,8 @@ class SQLiteConnectedBackend(StandardSQLConnectedBackend):
         query, values = self._query(select, columns=columns)
 
         try:
-            util.QUERY_LOGGER.debug(query, [_unwrap(value) for value in values])
+            util.QUERY_LOGGER.debug("%s => %s" % (query, [_unwrap(value)
+                                                          for value in values]))
             results = self.cursor.execute(query, [_unwrap(value)
                                                   for value in values])
             for result in results:

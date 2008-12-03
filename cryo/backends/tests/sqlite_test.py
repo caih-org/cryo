@@ -2,11 +2,11 @@ import unittest
 
 from cryo.backends.sqlite import SQLiteBackend
 
-from ...tests import base
+from .base import BackendTestCase
 from ...tests import testclasses
 
 
-class SQLiteBackendTestCase(unittest.TestCase, base.BackendTestCase):
+class SQLiteBackendTestCase(unittest.TestCase, BackendTestCase):
 
     def setUp(self):
         self.backend = SQLiteBackend(":memory:", modules=[testclasses])
