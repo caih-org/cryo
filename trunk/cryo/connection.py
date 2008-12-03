@@ -45,7 +45,6 @@ class Connection(object):
 
     def createtables(self, *tables):
         with Session(self) as session:
-            print tables
             for table in util.flatten(tables):
                 table = session.connectedbackend.createtable(table)
                 self.tables[table.classname] = table

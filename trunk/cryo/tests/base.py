@@ -42,8 +42,8 @@ class BackendTestCase():
             testobj = session.queryone(Select(testclasses.CompleteTestClass))
             self.assertEquals(testobj.boolean, False)
 
-    def testMany(self):
+    def test_many(self):
         pass
 
-    def testOne(self):
+    def test_one(self):
         pass
