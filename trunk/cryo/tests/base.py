@@ -19,7 +19,7 @@ class BackendTestCase():
 
         with Session(self.connection) as session:
             testobj_query = session.queryone(Select(testclasses.CompleteTestClass))
-            for attr in ['name', 'boolean', 'enum', 'text', 'longtext', 'integer'
+            for attr in ['name', 'boolean', 'enum', 'text', 'longtext', 'integer',
                          'decimal', 'long', 'timestamp', 'pythonobject']:
                 self.assertEquals(getattr(testobj, attr), getattr(testobj_query, attr))
             self.assertNotEquals(testobj.excluded, testobj_query)
@@ -40,7 +40,9 @@ class BackendTestCase():
 
         with Session(self.connection) as session:
             testobj = session.queryone(Select(testclasses.CompleteTestClass))
-            self.assertEquals(testobj.boolean, False)
+            for attr in ['name', 'boolean', 'enum', 'text', 'longtext', 'integer',
+                         'decimal', 'long', 'timestamp', 'pythonobject']:
+                self.assertEquals(getattr(testobj, attr), getattr(testobj_query, attr))
 
     def test_many(self):
         pass
