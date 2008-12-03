@@ -20,7 +20,7 @@ class CompleteTestClass:
         self.boolean = False
         self.enum = TestEnum.first
         self.text = "short"
-        self.longtext = "x" * 10000
+        self.longtext = "x" * 1000
         self.integer = 1
         self.decimal = 1.1
         self.long = 1L

@@ -26,6 +26,8 @@ def _convert(class_, connectedbackend):
     def convert(value):
         if issubclass(class_, datatypes.PythonObject):
             return pickle.loads(base64.decodestring(value))
+        elif issubclass(class_, datatypes.Boolean):
+            return value == True or value == 1
         elif issubclass(class_, datatypes.One):
             # TODO: handle foreign keys
             return value
