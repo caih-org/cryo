@@ -4,22 +4,25 @@ from datetime import datetime
 import random
 
 from cryo.session import Session
-from cryo.query import Select, Field
+from cryo.query import Select
 
-from . import testclasses
+from .testclasses import CompleteTestClass, TestEnum
 
 class BackendTestCase():
 
+    def setUp(self, connection):
+        self.connection = connection
+
     def test_session(self):
         with Session(self.connection) as session:
-            testobj1 = testclasses.CompleteTestClass("1")
-            testobj2 = testclasses.CompleteTestClass("2")
+            testobj1 = CompleteTestClass("1")
+            testobj2 = CompleteTestClass("2")
     
             self.assertTrue(testobj1 not in session)
             self.assertTrue(testobj2 not in session)
     
-            testobj3_1 = testclasses.CompleteTestClass("3")
-            testobj3_2 = testclasses.CompleteTestClass("3")
+            testobj3_1 = CompleteTestClass("3")
+            testobj3_2 = CompleteTestClass("3")
     
             self.assertTrue(session.same(testobj3_1, testobj3_2))
     
@@ -39,7 +42,7 @@ class BackendTestCase():
             self.assertTrue(testobj3_2 not in session)
 
     def test_rollback(self):
-        testobj = testclasses.CompleteTestClass()
+        testobj = CompleteTestClass()
         with Session(self.connection) as session:
             session.add(testobj)
             session.rollback()
@@ -53,23 +56,24 @@ class BackendTestCase():
             self.assertTrue(testobj in session)
 
     def test_datatypes(self):
-        testobj = testclasses.CompleteTestClass()
+        testobj = CompleteTestClass()
         with Session(self.connection) as session:
             testobj.excluded = 'excluded'
             session.add(testobj)
 
         with Session(self.connection) as session:
-            testobj_query = session.queryone(Select(testclasses.CompleteTestClass))
-            for attr in ['name', 'boolean', 'enum', 'text', 'longtext', 'integer',
-                         'decimal', 'long', 'timestamp', 'pythonobject']:
+            testobj_query = session.queryone(Select(CompleteTestClass))
+            for attr in ['name', 'boolean', 'enum', 'text', 'longtext',
+                         'integer', 'decimal', 'long', 'timestamp',
+                         'pythonobject']:
                 self.assertEquals(getattr(testobj, attr), getattr(testobj_query, attr))
             self.assertNotEquals(testobj.excluded, testobj_query)
 
-        testobj = testclasses.CompleteTestClass()
+        testobj = CompleteTestClass()
         with Session(self.connection) as session:
             testobj.name = 'test'
             testobj.boolean = not testobj.boolean
-            testobj.enum = testclasses.TestEnum.second
+            testobj.enum = TestEnum.second
             testobj.text = "text_" + str(random.randint(1, 20))
             testobj.longtext = "x" * 1000
             testobj.integer = 2
@@ -80,9 +84,10 @@ class BackendTestCase():
             session.add(testobj)
 
         with Session(self.connection) as session:
-            testobj_query = session.queryone(Select(testclasses.CompleteTestClass))
-            for attr in ['name', 'boolean', 'enum', 'text', 'longtext', 'integer',
-                         'decimal', 'long', 'timestamp', 'pythonobject']:
+            testobj_query = session.queryone(Select(CompleteTestClass))
+            for attr in ['name', 'boolean', 'enum', 'text', 'longtext',
+                         'integer', 'decimal', 'long', 'timestamp',
+                         'pythonobject']:
                 self.assertEquals(getattr(testobj, attr), getattr(testobj_query, attr))
 
     def test_many(self):
