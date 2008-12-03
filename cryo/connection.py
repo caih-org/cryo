@@ -12,12 +12,12 @@ from .session import Session
 import cryo
 
 _TABLES_TABLE = Table(Table, name = '_cryo_tables',
+                      primarykey = ('name', ),
                       attributes = {'name': LongText(),
                                     'classname': LongText(),
                                     'columns': PythonObject(),
                                     'foreignkeys': PythonObject(),
                                     'primarykey': PythonObject()})
-_TABLES_TABLE.primarykey = ('name', )
 
 
 class Connection(object):
@@ -54,9 +54,9 @@ class Backend(object):
 
     def __init__(self, uri, modules = None):
         self.uri = uri
-        self.modules = dict([(module.__name__, module)
+        self.modules = dict([(util.fixtest(module.__name__), module)
                              for module in (modules or [])])
-        self.modules[cryo.__name__] = cryo
+        self.modules[util.fixtest(cryo.__name__)] = cryo
 
     def newconnection(self):
         return Connection(self)

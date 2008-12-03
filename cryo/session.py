@@ -45,14 +45,14 @@ class Session(object):
             self[self.gethashkey(obj)] = None
         self[self.gethashkey(obj)] = obj
 
-    def __getitem__(self, key):
-        return self._objs[key][0]
+    def __getitem__(self, hashkey):
+        return self._objs[hashkey][0]
 
-    def __setitem__(self, key, obj):
-        if key in self._objs:
-            self._objs[key] = (obj, self._objs[key][1])
+    def __setitem__(self, hashkey, obj):
+        if hashkey in self._objs:
+            self._objs[hashkey] = (obj, self._objs[hashkey][1])
         else:
-            self._objs[key] = (obj, hash(obj))
+            self._objs[hashkey] = (obj, hash(obj))
 
     def __delitem__(self, obj):
         hashkey = self.gethashkey(obj)
@@ -64,8 +64,11 @@ class Session(object):
         return (obj for (obj, hash_) in self._objs.values())
 
     def __contains__(self, obj):
-        return (obj in self._objs or
-                self.gethashkey(obj) in self._objs)
+        try:
+            return (obj in self._objs or
+                    self.gethashkey(obj) in self._objs)
+        except exceptions.NotMapped:
+            return False
 
     ##########################
     # WITH
