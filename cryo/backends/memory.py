@@ -47,8 +47,8 @@ class MemoryConnectedBackend(ConnectedBackend):
         if table.name not in self.backend.tables:
             raise exceptions.TableDoesNotExist(table.name)
         results = []
-        for value in self.backend.values:
-            if util.issubclass_(value, select.class_):
+        for key, value in self.backend.values.items():
+            if isinstance(value, select.class_):
                 results.append(value)
 
         # TODO where(continue), sort, limit
