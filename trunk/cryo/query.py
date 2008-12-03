@@ -17,9 +17,6 @@ class Select(Query):
         self.whereclause = None
         self.orderbyclauses = []
         self.limitclause = None
-        from . import util
-        print util.getclass(self)
-        print util.issubclass_(self, Query)
         Query.__init__(self)
 
     def where(self, value=None, *args):

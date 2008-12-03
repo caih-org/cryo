@@ -27,7 +27,7 @@ doclines = __doc__.strip().splitlines()
 
 setup(name='cryo',
       version='0.1',
-      packages=['cryo'],
+      packages=['cryo', 'cryo.backends'],
       data_files=[('docs', [examplepath])],
       maintainer='César Izurieta',
       maintainer_email='cesar@caih.org',
