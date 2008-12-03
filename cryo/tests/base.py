@@ -46,7 +46,7 @@ class BackendTestCase():
         with Session(self.connection) as session:
             session.add(testobj)
             session.rollback()
-            self.assertTrue(testobj not in session)
+            self.assertTrue(testobj in session)
 
         with Session(self.connection) as session:
             session.add(testobj)

@@ -21,16 +21,17 @@ class Session(object):
         return self.connectedbackend.gethashkey(obj)
 
     def commit(self):
-        for (value, hash_) in self._objs.values():
+        for value, hash_ in self._objs.values():
             if hash(value) != hash_:
                 self.connectedbackend.insert(value)
         if self._deletedobjs:
-            self.connectedbackend.delete(self._deletedobjs.values())
+            self.connectedbackend.delete([value[0] for value in
+                                          self._deletedobjs.values()])
         self.connectedbackend.commit()
 
     def rollback(self):
         self.connectedbackend.rollback()
-        self._objs = {}
+        self._objs.update(self._deletedobjs)
         self._deletedobjs = {}
 
     def same(self, objecta, objectb):
@@ -57,7 +58,7 @@ class Session(object):
         hashkey = self.gethashkey(obj)
         if hashkey in self._objs:
             del self._objs[hashkey]
-        self._deletedobjs[hashkey] = obj
+        self._deletedobjs[hashkey] = (obj, hash(obj))
 
     def __iter__(self):
         return (obj for (obj, hash_) in self._objs.values())
