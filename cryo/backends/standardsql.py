@@ -1,5 +1,3 @@
-import hashlib
-
 from .. import util
 from .. import exceptions
 from ..connection import Backend, ConnectedBackend
@@ -20,35 +18,6 @@ class StandardSQLConnectedBackend(ConnectedBackend):
     def __init__(self, backend, session):
         ConnectedBackend.__init__(self, backend, session)
 
-    def gethashkey(self, obj):
-        table = self.session.gettable(obj)
-        return self._gethashkey(obj, table, table.primarykey)
-
-    def getfullhashkey(self, obj):
-        table = self.session.gettable(obj)
-        return self._gethashkey(obj, table, table.columns.keys())
-
-    def _gethashkey(self, obj, table, attributes):
-        fullname = util.fullname(obj.__class__)
-        if fullname != table.classname:
-            raise exceptions.InvalidValue('Value is not of table\'s ' +
-                                          'class: %s != %s'
-                                          % (fullname, table.classname))
-        hashkey = hashlib.sha1()
-        hashkey.update(fullname)
-        for attr in attributes:
-            value = getattr(obj, attr)
-            try:
-                hash = str(self.gethashkey(value))
-                hashkey.update(hash)
-            except exceptions.NotMapped:
-                if value is None:
-                    hashkey.update("_cryo_None")
-                else:
-                    hashkey.update(str(value))
-
-        return long(str(int(hashkey.hexdigest(), 16))[:18])
-
     def _createtable(self, table):
         columndefinitions = ["'%s' %s" %
                              (column.name, self.gettype(column.datatype))
@@ -58,7 +27,7 @@ class StandardSQLConnectedBackend(ConnectedBackend):
                              ", ".join(columndefinitions))
 
     def gettype(self, datatype):
-        pass
+        raise NotImplementedError()
 
     def _insert(self, *objs):
         for obj in util.flatten(objs):

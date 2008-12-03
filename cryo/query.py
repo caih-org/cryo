@@ -13,6 +13,7 @@ class Select(Query):
 
     def __init__(self, class_, constructor=None):
         self.constructor = constructor or class_
+        self.class_ = class_
         self.classname = util.fullname(class_)
         self.whereclause = None
         self.orderbyclauses = []

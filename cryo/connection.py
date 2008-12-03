@@ -1,5 +1,7 @@
 from __future__ import with_statement
 
+import hashlib
+
 from . import exceptions
 from . import util
 from .metadata import Table
@@ -70,31 +72,54 @@ class ConnectedBackend(object):
         self.session = session
 
     def gethashkey(self, obj):
-        pass
+        table = self.session.gettable(obj)
+        return self._gethashkey(obj, table, table.primarykey)
 
     def getfullhashkey(self, obj):
-        pass
+        table = self.session.gettable(obj)
+        return self._gethashkey(obj, table, table.columns.keys())
+
+    def _gethashkey(self, obj, table, attributes):
+        fullname = util.fullname(obj.__class__)
+        if fullname != table.classname:
+            raise exceptions.InvalidValue('Value is not of table\'s ' +
+                                          'class: %s != %s'
+                                          % (fullname, table.classname))
+        hashkey = hashlib.sha1()
+        hashkey.update(fullname)
+        for attr in attributes:
+            value = getattr(obj, attr)
+            try:
+                hash = str(self.gethashkey(value))
+                hashkey.update(hash)
+            except exceptions.NotMapped:
+                if value is None:
+                    hashkey.update("_cryo_None")
+                else:
+                    hashkey.update(str(value))
+
+        return long(str(int(hashkey.hexdigest(), 16))[:18])
 
     def createtable(self, table):
-        pass
+        raise NotImplementedError()
 
     def insert(self, *objs):
-        pass
+        raise NotImplementedError()
 
     def delete(self, *objs):
-        pass
+        raise NotImplementedError()
 
     def get(self, table, hashkey):
-        pass
+        raise NotImplementedError()
 
     def query(self, query):
-        pass
+        raise NotImplementedError()
 
     def commit(self):
-        pass
+        raise NotImplementedError()
 
     def rollback(self):
-        pass
+        raise NotImplementedError()
 
     def disconnect(self):
-        pass
+        raise NotImplementedError()
