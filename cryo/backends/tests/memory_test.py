@@ -5,6 +5,7 @@ import os.path
 from cryo.backends.memory import MemoryBackend
 
 from ...tests import base
+from ...tests import testclasses
 
 
 class MemoryBackendTestCase(unittest.TestCase, base.BackendTestCase):
