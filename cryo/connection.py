@@ -1,10 +1,12 @@
 from __future__ import with_statement
 
 from . import exceptions
+from . import util
 from .metadata import Table
 from .datatypes import LongText, PythonObject
 from .query import Select
 from .session import Session
+
 import cryo
 
 _TABLES_TABLE = Table(Table, name = '_cryo_tables',
@@ -41,7 +43,7 @@ class Connection(object):
 
     def createtables(self, *tables):
         with Session(self) as session:
-            for table in tables:
+            for table in util.flatten(tables):
                 table = session.connectedbackend.createtable(table)
                 self.tables[table.classname] = table
 

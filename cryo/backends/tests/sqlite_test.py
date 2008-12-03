@@ -1,22 +1,27 @@
 import unittest
 import os
+import os.path
 
-from ..sqlite import SQLiteBackend
+from cryo.backends.sqlite import SQLiteBackend
 
 from ...tests import base
-
 from ...tests import testclasses
 
-_path = './test.sqlite';
+_PATH = './test.sqlite'
 
 
 class SQLiteBackendTestCase(unittest.TestCase, base.BackendTestCase):
 
     def setUp(self):
-        self.backend = SQLiteBackend(_path, modules=[testclasses])
-        self.connection = self.backend.newconnection()
-        if not self.connection.readtables():
-            self.connection.createtables(testclasses.gettables())
+        try:
+            self.backend = SQLiteBackend(_PATH, modules=[testclasses])
+            self.connection = self.backend.newconnection()
+            if not self.connection.readtables():
+                self.connection.createtables(testclasses.gettables())
+        except Exception, e:
+            self.tearDown()
+            raise e
 
     def tearDown(self):
-        os.unlink(_path)
+        if os.path.exists(_PATH):
+            os.unlink(_PATH)

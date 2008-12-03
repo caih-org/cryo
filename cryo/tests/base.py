@@ -3,7 +3,6 @@ from __future__ import with_statement
 from datetime import datetime
 
 from cryo.session import Session
-from cryo.backends.sqlite import SQLiteBackend
 from cryo.query import Select, Field
 
 from . import testclasses
