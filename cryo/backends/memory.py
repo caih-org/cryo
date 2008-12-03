@@ -53,6 +53,7 @@ class MemoryConnectedBackend(ConnectedBackend):
 
         # TODO where(continue), sort, limit
         
+        print "RRRRRRRRRRRRRR", results
         for result in results:
             yield results
 
