@@ -92,7 +92,10 @@ class Session(object):
             return self.connectedbackend.get(table, hashkey)
 
     def queryone(self, query):
-        return self.query(query).next()
+        try:
+            return self.query(query).next()
+        except StopIteration:
+            return None 
 
     def query(self, query):
         objs = self.connectedbackend.query(query)

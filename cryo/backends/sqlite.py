@@ -63,6 +63,7 @@ class SQLiteConnectedBackend(StandardSQLConnectedBackend):
 
     def createtable(self, table):
         query = self._createtable(table)
+        util.QUERY_LOGGER.debug(query)
         self.cursor.execute(query)
         self.insert(table)
         return table
@@ -79,10 +80,12 @@ class SQLiteConnectedBackend(StandardSQLConnectedBackend):
 
     def insert(self, *objs):
         for query, values in self._insert(*objs):
+            util.QUERY_LOGGER.debug(query, [_unwrap(value) for value in values])
             self.cursor.execute(query, [_unwrap(value) for value in values])
 
     def delete(self, *objs):
         for query, values in self._delete(*objs):
+            util.QUERY_LOGGER.debug(query, [_unwrap(value) for value in values])
             self.cursor.execute(query, [_unwrap(value) for value in values])
 
     def query(self, select):
@@ -96,6 +99,7 @@ class SQLiteConnectedBackend(StandardSQLConnectedBackend):
         query, values = self._query(select, columns=columns)
 
         try:
+            util.QUERY_LOGGER.debug(query, [_unwrap(value) for value in values])
             results = self.cursor.execute(query, [_unwrap(value)
                                                   for value in values])
             for result in results:
@@ -117,9 +121,11 @@ class SQLiteConnectedBackend(StandardSQLConnectedBackend):
             raise exceptions.TableDoesNotExist(table.name, e)
 
     def commit(self):
+        util.QUERY_LOGGER.debug("COMMIT")
         self.connection.commit()
 
     def rollback(self):
+        util.QUERY_LOGGER.debug("ROLLBACK")
         self.connection.rollback()
 
     def disconnect(self):

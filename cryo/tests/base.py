@@ -41,6 +41,20 @@ class BackendTestCase():
             self.assertTrue(testobj3_1 not in session)
             self.assertTrue(testobj3_2 not in session)
 
+    def test_add_delete(self):
+        with Session(self.connection) as session:
+            testobj = CompleteTestClass()
+            session.add(testobj)
+
+        with Session(self.connection) as session:
+            testobj_query = session.queryone(Select(CompleteTestClass))
+            self.assertTrue(testobj_query is not None)
+            del session[testobj_query]
+
+        with Session(self.connection) as session:
+            testobj_query = session.queryone(Select(CompleteTestClass))
+            self.assertTrue(testobj_query is None)
+
     def test_rollback(self):
         testobj = CompleteTestClass()
         with Session(self.connection) as session:
