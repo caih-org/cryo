@@ -14,4 +14,5 @@ class MemoryBackendTestCase(unittest.TestCase, BackendTestCase):
         self.backend = MemoryBackend()
         self.connection = self.backend.newconnection()
         if not self.connection.readtables():
+            self.connection.inittables()
             self.connection.createtables(testclasses.gettables())
