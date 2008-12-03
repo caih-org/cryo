@@ -89,7 +89,7 @@ class BackendTestCase():
             testobj.boolean = not testobj.boolean
             testobj.enum = TestEnum.second
             testobj.text = "text_" + str(random.randint(1, 20))
-            testobj.longtext = "x" * 1000
+            testobj.longtext = "y" * 1000
             testobj.integer = 2
             testobj.decimal = 3.0
             testobj.long = 4L
