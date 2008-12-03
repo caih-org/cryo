@@ -35,7 +35,8 @@ class MemoryConnectedBackend(ConnectedBackend):
         for obj in util.flatten(objs):
             table = self.session.gettable(obj)
             hashkey = self.gethashkey(obj) 
-            del self.values[hashkey]
+            if hashkey in self.values:
+                del self.values[hashkey]
             self.deletedvalues[hashkey] = True
 
     def get(self, table, hashkey):

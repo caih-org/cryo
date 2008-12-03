@@ -15,8 +15,8 @@ class PythonObjectTest():
 
 class CompleteTestClass:
 
-    def __init__(self):
-        self.name = ""
+    def __init__(self, name=""):
+        self.name = name
         self.boolean = False
         self.enum = TestEnum.first
         self.text = "short"
