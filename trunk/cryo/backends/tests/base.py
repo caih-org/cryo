@@ -6,7 +6,7 @@ import random
 from cryo.session import Session
 from cryo.query import Select
 
-from .testclasses import CompleteTestClass, TestEnum
+from ...tests.testclasses import CompleteTestClass, TestEnum
 
 class BackendTestCase():
 
