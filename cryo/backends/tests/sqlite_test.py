@@ -12,5 +12,6 @@ class SQLiteBackendTestCase(unittest.TestCase, BackendTestCase):
         self.backend = SQLiteBackend(":memory:", modules=[testclasses])
         self.connection = self.backend.newconnection()
         if not self.connection.readtables():
+            self.connection.inittables()
             self.connection.createtables(testclasses.gettables())
 
