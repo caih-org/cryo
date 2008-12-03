@@ -9,7 +9,7 @@ from ...tests import testclasses
 class SQLiteBackendTestCase(unittest.TestCase, BackendTestCase):
 
     def setUp(self):
-        self.backend = SQLiteBackend(":memory:", modules=[testclasses])
+        self.backend = SQLiteBackend("./test.sqlite", modules=[testclasses])
         self.connection = self.backend.newconnection()
         if not self.connection.readtables():
             self.connection.inittables()

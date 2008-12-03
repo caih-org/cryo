@@ -5,6 +5,19 @@ import logging
 QUERY_LOGGER = logging.getLogger('cryo.query')
 
 
+def fixtest(modulename):
+    """
+    Returns the name of the module without ':test'.
+
+    For example:
+
+    >>> fixtest('test: somemodule')
+    'somemodule'
+    """
+
+    return modulename.replace('test: ', '', 1)
+
+
 def fullname(class_):
     """
     Returns the full name of the class.
@@ -16,7 +29,7 @@ def fullname(class_):
     'datetime.datetime'
     """
 
-    return "%s.%s" % (class_.__module__, class_.__name__)
+    return "%s.%s" % (fixtest(class_.__module__), class_.__name__)
 
 
 def fullname_underscore(class_):
