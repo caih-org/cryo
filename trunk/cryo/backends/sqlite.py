@@ -59,12 +59,11 @@ class SQLiteConnectedBackend(StandardSQLConnectedBackend):
         self.connection = sqlite3.connect(backend.uri,
                                           detect_types=sqlite3.PARSE_COLNAMES)
         self.connection.row_factory = sqlite3.Row
-        self.cursor = self.connection.cursor()
 
     def createtable(self, table):
         query = self._createtable(table)
         util.QUERY_LOGGER.debug(query)
-        self.cursor.execute(query)
+        self.connection.execute(query)
         self.insert(table)
         return table
 
@@ -77,18 +76,20 @@ class SQLiteConnectedBackend(StandardSQLConnectedBackend):
             return 'timestamp'
         elif isinstance(datatype, datatypes.ForeignKey):
             return 'integer'
+        else:
+            return 'text'
 
     def insert(self, *objs):
         for query, values in self._insert(*objs):
             util.QUERY_LOGGER.debug("%s => %s" % (query, [_unwrap(value)
                                                           for value in values]))
-            self.cursor.execute(query, [_unwrap(value) for value in values])
+            self.connection.execute(query, [_unwrap(value) for value in values])
 
     def delete(self, *objs):
         for query, values in self._delete(*objs):
             util.QUERY_LOGGER.debug("%s => %s" % (query, [_unwrap(value)
                                                           for value in values]))
-            self.cursor.execute(query, [_unwrap(value) for value in values])
+            self.connection.execute(query, [_unwrap(value) for value in values])
 
     def query(self, select):
         table = self.session.connection.tables[select.classname]
@@ -103,7 +104,7 @@ class SQLiteConnectedBackend(StandardSQLConnectedBackend):
         try:
             util.QUERY_LOGGER.debug("%s => %s" % (query, [_unwrap(value)
                                                           for value in values]))
-            results = self.cursor.execute(query, [_unwrap(value)
+            results = self.connection.execute(query, [_unwrap(value)
                                                   for value in values])
             for result in results:
                 obj = select.constructor()
@@ -132,5 +133,5 @@ class SQLiteConnectedBackend(StandardSQLConnectedBackend):
         self.connection.rollback()
 
     def disconnect(self):
-        self.cursor = None
+        self.connection.close()
         self.connection = None
