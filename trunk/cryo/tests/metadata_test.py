@@ -1,5 +1,7 @@
 import unittest
 
+from cryo import datatypes
+
 from . import testclasses
 
 
@@ -18,10 +20,11 @@ class TableTestCase(unittest.TestCase):
                 self.assertEquals(len(table.columns), 10, table.columns)
                 self.assertEquals(len(table.foreignkeys), 0, table.foreignkeys)
 
-                for column in table.columns:
-                    pass
-
-                assert len(table.foreignkeys) == 0
+                for name, column in table.columns.items():
+                    if isinstance(column.datatype, datatypes.Enum):
+                        self.assertEquals(column.datatype.enum,
+                                          testclasses.TestEnum)
+                    # TODO: test all datatypes
 
 
             elif table.class_ == testclasses.ForeignKeyTestClass:

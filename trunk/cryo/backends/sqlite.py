@@ -107,7 +107,8 @@ class SQLiteConnectedBackend(StandardSQLConnectedBackend):
             results = self.connection.execute(query, _todb(values))
 
             for row in results:
-                yield self._createobj(row, table, select.constructor)
+                obj = self._createobj(row, table, select.constructor)
+                yield obj
 
         except sqlite3.OperationalError, e:
             raise exceptions.TableDoesNotExist(table.name, e)

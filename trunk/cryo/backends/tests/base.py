@@ -7,6 +7,7 @@ from cryo.session import Session
 from cryo.query import Select
 
 from ...tests.testclasses import CompleteTestClass, TestEnum
+from ... import util
 
 class BackendTestCase():
 
@@ -69,7 +70,7 @@ class BackendTestCase():
             session.rollback()
             self.assertTrue(testobj in session)
 
-    def test_datatypes(self):
+    def test_datatypes_excluded(self):
         testobj = CompleteTestClass()
         with Session(self.connection) as session:
             testobj.excluded = 'excluded'
@@ -83,6 +84,7 @@ class BackendTestCase():
                 self.assertEquals(getattr(testobj, attr), getattr(testobj_query, attr))
             self.assertNotEquals(testobj.excluded, testobj_query)
 
+    def test_datatypes(self):
         testobj = CompleteTestClass()
         with Session(self.connection) as session:
             testobj.name = 'test'
