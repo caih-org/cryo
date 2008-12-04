@@ -12,6 +12,9 @@ class PythonObjectTest():
     def __init__(self):
         self.name = ""
 
+    def __eq__(self, other):
+        return self.name == other.name
+
 
 class CompleteTestClass:
 

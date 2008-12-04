@@ -15,7 +15,7 @@ class Table(object):
                     if value == None:
                         attributes[attr] = None
                     else:
-                        attributes[attr] = value.__class__
+                        attributes[attr] = value
 
             self.name = name or class_.__name__
             self.class_ = class_
@@ -29,7 +29,7 @@ class Table(object):
         columns = {}
         foreignkeys = {}
 
-        for (attr, value) in attributes.items():
+        for attr, value in attributes.items():
             if isinstance(value, Column):
                 self._addcolumn(columns, foreignkeys, attr, value)
             else:
