@@ -31,7 +31,6 @@ class CompleteTestClass:
         self.pythonobject = PythonObjectTest()
         self.excluded = None
 
-
 class ForeignKeyTestClass:
 
     def __init__(self):

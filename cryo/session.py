@@ -96,11 +96,13 @@ class Session(object):
 
     def queryone(self, query):
         try:
-            return self.query(query).next()
+            obj = self.query(query).next()
+            return obj
         except StopIteration:
             return None 
 
     def query(self, query):
+        objs = self.connectedbackend.query(query)
         objs = self.connectedbackend.query(query)
         for obj in util.flatten(objs):
             self.add(obj, dirty = False)
