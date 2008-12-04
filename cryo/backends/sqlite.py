@@ -8,8 +8,12 @@ from .. import exceptions
 from .. import datatypes
 
 
-def _unwrap(value):
-    if not isinstance(value, StandardSQLConnectedBackend.Wrapper):
+def _todb(value):
+    """Converts a value to be stored on the database"""
+
+    if hasattr(value, '__iter__'):
+        return [_todb(val) for val in value]
+    elif not isinstance(value, StandardSQLConnectedBackend.Wrapper):
         return value
     elif isinstance(value.column.datatype, datatypes.Enum):
         return value.value.index
@@ -21,34 +25,31 @@ def _unwrap(value):
         return value.value
 
 
-def _convert(class_, connectedbackend):
+def _fromdb(value, column):
+    """Converts a value pulled from the database"""
 
-    def convert(value):
-        if issubclass(class_, datatypes.PythonObject):
-            return pickle.loads(base64.decodestring(value))
-        elif issubclass(class_, datatypes.Boolean):
-            return value == True or value == 1
-        elif issubclass(class_, datatypes.One):
-            # TODO: handle foreign keys
-            return value
-        elif issubclass(class_, datatypes.Many):
-            # TODO: handle foreign keys
-            return []
-        else:
-            return value
+    class_ = column.datatype.__class__
 
-    return convert
+    if issubclass(class_, datatypes.PythonObject):
+        return pickle.loads(base64.decodestring(value))
+    elif issubclass(class_, datatypes.Boolean):
+        return value == True or int(value) == 1
+    elif issubclass(class_, datatypes.Enum):
+        return column.datatype.enum[int(value)]
+    elif issubclass(class_, datatypes.One):
+        # TODO: handle foreign keys
+        return value
+    elif issubclass(class_, datatypes.Many):
+        # TODO: handle foreign keys
+        return []
+    else:
+        return value
 
 
 class SQLiteBackend(StandardSQLBackend):
 
     def __init__(self, uri, modules=None):
         StandardSQLBackend.__init__(self, uri, modules)
-        for attr in dir(datatypes):
-            value = getattr(datatypes, attr)
-            if isinstance(value, type):
-                sqlite3.register_converter(util.fullname_underscore(value),
-                                           _convert(value, self))
 
     def connect(self, session):
         return SQLiteConnectedBackend(self, session)
@@ -83,15 +84,13 @@ class SQLiteConnectedBackend(StandardSQLConnectedBackend):
 
     def insert(self, *objs):
         for query, values in self._insert(*objs):
-            util.QUERY_LOGGER.debug("%s => %s" % (query, [_unwrap(value)
-                                                          for value in values]))
-            self.connection.execute(query, [_unwrap(value) for value in values])
+            util.QUERY_LOGGER.debug("%s => %s" % (query, _todb(values)))
+            self.connection.execute(query, _todb(values))
 
     def delete(self, *objs):
         for query, values in self._delete(*objs):
-            util.QUERY_LOGGER.debug("%s => %s" % (query, [_unwrap(value)
-                                                          for value in values]))
-            self.connection.execute(query, [_unwrap(value) for value in values])
+            util.QUERY_LOGGER.debug("%s => %s" % (query, _todb(values)))
+            self.connection.execute(query, _todb(values))
 
     def query(self, select):
         table = self.session.connection.tables[select.classname]
@@ -104,27 +103,32 @@ class SQLiteConnectedBackend(StandardSQLConnectedBackend):
         query, values = self._query(select, columns=columns)
 
         try:
-            util.QUERY_LOGGER.debug("%s => %s" % (query, [_unwrap(value)
-                                                          for value in values]))
-            results = self.connection.execute(query, [_unwrap(value)
-                                                  for value in values])
-            for result in results:
-                obj = select.constructor()
-                for (name, column) in table.columns.items():
-                    if isinstance(column.datatype, datatypes.One):
-                        # TODO: check for autofetch
-                        setattr(obj, name,
-                                self.session.get(column.datatype.class_,
-                                                 result[column.name]))
-                    elif isinstance(column.datatype, datatypes.Many):
-                        # TODO: get collection or set proxy
-                        pass
-                    else:
-                        setattr(obj, name, result[column.name])
-                yield obj
+            util.QUERY_LOGGER.debug("%s => %s" % (query, _todb(values)))
+            results = self.connection.execute(query, _todb(values))
+
+            for row in results:
+                yield self._createobj(row, table, select.constructor)
 
         except sqlite3.OperationalError, e:
             raise exceptions.TableDoesNotExist(table.name, e)
+
+    def _createobj(self, row, table, constructor):
+        obj = constructor()
+        for name, column in table.columns.items():
+            if isinstance(column.datatype, datatypes.One):
+                # TODO: check for autofetch
+                class_ = column.datatype.class_
+                value = self.session.get(class_, row[column.name])
+                setattr(obj, name, value)
+            elif isinstance(column.datatype, datatypes.Many):
+                # TODO: get collection or set proxy
+                value = []
+                setattr(obj, name, value)
+            else:
+                value = _fromdb(row[column.name], column)
+                setattr(obj, name, value)
+
+        return obj
 
     def commit(self):
         util.QUERY_LOGGER.debug("COMMIT")

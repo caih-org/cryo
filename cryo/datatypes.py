@@ -102,10 +102,9 @@ class PythonObject(Datatype):
 
 class Enum(Datatype):
 
-    def __init__(self, class_):
+    def __init__(self, enum):
         Datatype.__init__(self)
-        self.class_ = class_
-        self.classname = util.fullname(class_)
+        self.enum = enum
 
 
 def guessdbdatatype(value):
@@ -127,8 +126,10 @@ def guessdbdatatype(value):
         return Number(10)
     elif _issubclassorinstance(value, datetime):
         return Timestamp()
-    elif _issubclassorinstance(value, enum.EnumValue):
-        return Enum(util.getclass(value))
+    elif isinstance(value, enum.Enum):
+        return Enum(value)
+    elif isinstance(value, enum.EnumValue):
+        return Enum(value.enumtype)
     else:
         return Unknown()
 

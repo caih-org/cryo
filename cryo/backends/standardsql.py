@@ -35,14 +35,17 @@ class StandardSQLConnectedBackend(ConnectedBackend):
 
             names = [_ID_FIELD_NAME]
             values = [self.gethashkey(obj)]
-            for (name, column) in table.columns.items():
+
+            for name, column in table.columns.items():
                 names.append("'%s'" % column.name)
-                values.append(self.Wrapper(self, column,
-                                           getattr(obj, name)))
-            options = ", ".join(['?' for name in names])
+                wrapped = self.Wrapper(self, column, getattr(obj, name))
+                values.append(wrapped)
+
+            options = ', '.join(['?' for name in names])
 
             query = ("INSERT OR REPLACE INTO '%s' (%s) VALUES (%s)"
                      % (table.name, ", ".join(names), options))
+
             yield query, values
 
     def _delete(self, *objs):
