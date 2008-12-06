@@ -23,6 +23,9 @@ class BackendTestCase:
         self.assertFalse = lambda: True
         # end HACK
 
+    ##########################
+    # SESSION
+
     def test_session_empty(self):
         with Session(self.connection) as session:
             self.assertEquals(len(session), 0)
@@ -79,6 +82,9 @@ class BackendTestCase:
 
             self.assertFalse(session.same(testobj1, testobj2))
 
+    ##########################
+    # DB TRANSACTIONS
+
     def test_add_delete(self):
         with Session(self.connection) as session:
             testobj = CompleteTestClass()
@@ -106,6 +112,9 @@ class BackendTestCase:
             del session[testobj]
             session.rollback()
             self.assertTrue(testobj in session)
+
+    ##########################
+    # DATATYPES
 
     def test_datatypes_excluded(self):
         testobj = CompleteTestClass()
@@ -155,6 +164,9 @@ class BackendTestCase:
                 self.assertEquals(getattr(testobj, attr),
                                   getattr(testobj_query, attr))
             self.assertEquals(testobj.enum.index, testobj_query.enum.index)
+
+    ##########################
+    # FOREIGN KEYS
 
     def test_foreignkeys_one_none(self):
         with Session(self.connection) as session:
@@ -225,3 +237,10 @@ class BackendTestCase:
 
             testobj_query = session.queryone(Select(ForeignKeyTestClassOne))
             self.assertTrue(testobj_query is not None)
+
+
+    ##########################
+    # QUERIES
+
+    def test_query(self):
+        pass
