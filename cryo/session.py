@@ -70,6 +70,9 @@ class Session(object):
         except exceptions.NotMapped:
             return False
 
+    def __len__(self):
+        return len(self._objs.values())
+
     ##########################
     # WITH
 
