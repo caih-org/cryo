@@ -113,10 +113,10 @@ def test(connection):
 
         assert session.same(a3_1, a3_2)
 
-        session.add(a1)
-        session.add(a2)
-        session.add(a3_1)
-        session.add(a3_2)
+        session.append(a1)
+        session.append(a2)
+        session.append(a3_1)
+        session.append(a3_2)
 
         assert a1 in session
         assert a2 in session
@@ -130,7 +130,7 @@ def test(connection):
 
         b1 = B("b1", a1, "ok", "good")
 
-        session.add(b1)
+        session.append(b1)
 
     with Session(connection) as session:
         a = session.queryone(Select(A).where(Field("name"), "LIKE", "a1")
@@ -143,7 +143,7 @@ def test(connection):
 
     with Session(connection) as session:
         for n in range(12500):
-            session.add(A("a%i" % n, "generated"))
+            session.append(A("a%i" % n, "generated"))
 
 if __name__ == '__main__':
     try:

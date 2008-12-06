@@ -33,23 +33,24 @@ class CompleteTestClass:
 
 class ForeignKeyTestClass:
 
-    def __init__(self):
-        self.name = ""
-        self.one = ForeignKeyTestClassOne(self)
+    def __init__(self, name=''):
+        self.name = name
+        self.one = ForeignKeyTestClassOne(foreignkeytest=self)
         self.many = []
+        self.many_autofetch = []
 
 
 class ForeignKeyTestClassOne:
 
-    def __init__(self, foreignkeytest=None):
-        self.name = ""
+    def __init__(self, name='', foreignkeytest=None):
+        self.name = name
         self.one = foreignkeytest or ForeignKeyTestClass()
 
 
 class ForeignKeyTestClassMany:
 
-    def __init__(self, foreignkeytest=None):
-        self.name = ""
+    def __init__(self, name='', foreignkeytest=None):
+        self.name = name
         self.one = foreignkeytest or ForeignKeyTestClass()
 
 
@@ -60,7 +61,9 @@ def gettables():
             Table(ForeignKeyTestClass,
                   primarykey=('name',),
                   attributes={'one': One(ForeignKeyTestClassOne),
-                              'many': Many(ForeignKeyTestClassMany)}),
+                              'many': Many(ForeignKeyTestClassMany),
+                              'many_autofetch': Many(ForeignKeyTestClassMany,
+                                                     autofetch=True)}),
             Table(ForeignKeyTestClassOne,
                   primarykey=('name',),
                   attributes={'one': One(ForeignKeyTestClass, inverse=True)}),

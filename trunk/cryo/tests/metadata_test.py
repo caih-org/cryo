@@ -29,7 +29,7 @@ class TableTestCase(unittest.TestCase):
 
             elif table.class_ == testclasses.ForeignKeyTestClass:
                 self.assertEquals(len(table.columns), 2, table.columns)
-                self.assertEquals(len(table.foreignkeys), 2, table.foreignkeys)
+                self.assertEquals(len(table.foreignkeys), 3, table.foreignkeys)
 
             elif table.class_ == testclasses.ForeignKeyTestClassOne:
                 self.assertEquals(len(table.columns), 2, table.columns)

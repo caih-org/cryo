@@ -1,14 +1,17 @@
+from UserDict import DictMixin
+
 from . import exceptions
 from . import util
 
 
-class Session(object):
+class Session(DictMixin):
 
     def __init__(self, connection, autocommit=True):
         self.connection = connection
         self.autocommit = autocommit
         self._objs = {}
-        self._deletedobjs = {}
+        self._commited = {}
+        self._deleted = {}
         self.connectedbackend = self.connection.backend.connect(self)
 
     def gettable(self, obj=None, classname=None, class_=None):
@@ -24,15 +27,17 @@ class Session(object):
         for value, hash_ in self._objs.values():
             if hash(value) != hash_:
                 self.connectedbackend.insert(value)
-        if self._deletedobjs:
+        if self._deleted:
             self.connectedbackend.delete([value[0] for value in
-                                          self._deletedobjs.values()])
+                                          self._deleted.values()])
         self.connectedbackend.commit()
+        self._commited.update(self._objs)
 
     def rollback(self):
         self.connectedbackend.rollback()
-        self._objs.update(self._deletedobjs)
-        self._deletedobjs = {}
+        self._objs = {}
+        self._objs.update(self._commited)
+        self._deleted = {}
 
     def same(self, objecta, objectb):
         return (self.gethashkey(objecta) == self.gethashkey(objectb))
@@ -40,10 +45,20 @@ class Session(object):
     ##########################
     # CONTAINER
 
-    def add(self, obj, dirty=True):
+    def append(self, obj, dirty=True, recursive=False):
         if dirty:
             self[self.gethashkey(obj)] = None
         self[self.gethashkey(obj)] = obj
+        if recursive:
+            # TODO: add foreign key objs
+            pass
+
+    def remove(self, obj, delete=False):
+        hashkey = self.gethashkey(obj)
+        if hashkey in self._objs:
+            del self._objs[hashkey]
+        if delete:
+            self._deleted[hashkey] = (obj, hash(obj))
 
     def __getitem__(self, hashkey):
         return self._objs[hashkey][0]
@@ -55,23 +70,28 @@ class Session(object):
             self._objs[hashkey] = (obj, hash(obj))
 
     def __delitem__(self, obj):
-        hashkey = self.gethashkey(obj)
-        if hashkey in self._objs:
-            del self._objs[hashkey]
-        self._deletedobjs[hashkey] = (obj, hash(obj))
+        self.remove(obj, True)
 
     def __iter__(self):
         return (obj for (obj, hash_) in self._objs.values())
 
     def __contains__(self, obj):
         try:
-            return (obj in self._objs or
-                    self.gethashkey(obj) in self._objs)
+            hashkey = self.gethashkey(obj)
+            return hashkey in self._objs and self[hashkey] == obj
         except exceptions.NotMapped:
-            return False
+            return obj in self._objs
 
     def __len__(self):
         return len(self._objs.values())
+
+    def keys(self):
+        return self._objs.keys()
+
+    def clear(self):
+        self._objs = {}
+        self._commited = {}
+        self._deleted = {}
 
     ##########################
     # WITH
@@ -106,7 +126,6 @@ class Session(object):
 
     def query(self, query):
         objs = self.connectedbackend.query(query)
-        objs = self.connectedbackend.query(query)
         for obj in util.flatten(objs):
-            self.add(obj, dirty = False)
+            self.append(obj, dirty=False, recursive=True)
             yield obj
