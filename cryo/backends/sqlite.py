@@ -20,7 +20,10 @@ def _todb(value):
     elif isinstance(value.column.datatype, datatypes.PythonObject):
         return base64.encodestring(pickle.dumps(value.value, 2))
     if isinstance(value.column.datatype, datatypes.ForeignKey):
-        return value.connectedbackend.gethashkey(value.value)
+        if value.value is None:
+            return 0
+        else:
+            return value.connectedbackend.gethashkey(value.value)
     else:
         return value.value
 
