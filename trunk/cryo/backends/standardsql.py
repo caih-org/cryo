@@ -51,8 +51,8 @@ class StandardSQLConnectedBackend(ConnectedBackend):
     def _delete(self, *objs):
         for obj in util.flatten(objs):
             table = self.session.gettable(obj)
-            query = "DELETE FROM '%s' WHERE '%s' == ?" % (table.name,
-                                                          _ID_FIELD_NAME)
+            query = "DELETE FROM '%s' WHERE %s = ?" % (table.name,
+                                                       _ID_FIELD_NAME)
             yield query, [self.gethashkey(obj)]
 
     def get(self, table, hashkey):

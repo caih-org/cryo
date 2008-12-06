@@ -90,15 +90,15 @@ class ConnectedBackend(object):
         for attr in attributes:
             value = getattr(obj, attr)
             try:
-                hash = str(self.gethashkey(value))
-                hashkey.update(hash)
+                valuehash = str(self.gethashkey(value))
+                hashkey.update(valuehash)
             except exceptions.NotMapped:
                 if value is None:
                     hashkey.update("_cryo_None")
                 else:
                     hashkey.update(str(value))
 
-        return long(str(int(hashkey.hexdigest(), 16))[:18])
+        return hashkey.hexdigest()
 
     def createtable(self, table):
         raise NotImplementedError()

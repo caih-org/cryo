@@ -16,6 +16,8 @@ class BackendTestCase():
 
     def test_session(self):
         with Session(self.connection) as session:
+            self.assertEquals(len(session), 0)
+
             testobj1 = CompleteTestClass("1")
             testobj2 = CompleteTestClass("2")
     
@@ -34,6 +36,9 @@ class BackendTestCase():
     
             self.assertTrue(testobj1 in session)
             self.assertTrue(testobj2 in session)
+            self.assertTrue(testobj3_1 in session)
+            self.assertTrue(testobj3_2 in session)
+            self.assertEquals(len(session), 3)
 
             del session[testobj3_1]
 
@@ -41,6 +46,10 @@ class BackendTestCase():
             self.assertTrue(testobj2 in session)
             self.assertTrue(testobj3_1 not in session)
             self.assertTrue(testobj3_2 not in session)
+            self.assertEquals(len(session), 2)
+
+        with Session(self.connection) as session:
+            self.assertEquals(len(session), 0)
 
     def test_add_delete(self):
         with Session(self.connection) as session:
