@@ -1,7 +1,6 @@
 import inspect
 import logging
 
-
 QUERY_LOGGER = logging.getLogger('cryo.query')
 
 
