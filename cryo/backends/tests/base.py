@@ -7,12 +7,9 @@ from cryo.session import Session
 from cryo.query import Select
 
 from ...tests.testclasses import CompleteTestClass, TestEnum
-from ... import util
 
-class BackendTestCase():
 
-    def setUp(self, connection):
-        self.connection = connection
+class BackendTestCase:
 
     def test_session(self):
         with Session(self.connection) as session:
@@ -87,10 +84,11 @@ class BackendTestCase():
 
         with Session(self.connection) as session:
             testobj_query = session.queryone(Select(CompleteTestClass))
-            for attr in ['name', 'boolean', 'enum', 'text', 'longtext',
+            for attr in ['name', 'boolean', 'text', 'longtext',
                          'integer', 'decimal', 'long', 'timestamp',
                          'pythonobject']:
                 self.assertEquals(getattr(testobj, attr), getattr(testobj_query, attr))
+            self.assertEquals(testobj.enum.index, testobj_query.enum.index)
             self.assertNotEquals(testobj.excluded, testobj_query)
 
     def test_datatypes(self):
@@ -110,10 +108,11 @@ class BackendTestCase():
 
         with Session(self.connection) as session:
             testobj_query = session.queryone(Select(CompleteTestClass))
-            for attr in ['name', 'boolean', 'enum', 'text', 'longtext',
+            for attr in ['name', 'boolean', 'text', 'longtext',
                          'integer', 'decimal', 'long', 'timestamp',
                          'pythonobject']:
                 self.assertEquals(getattr(testobj, attr), getattr(testobj_query, attr))
+            self.assertEquals(testobj.enum.index, testobj_query.enum.index)
 
     def test_many(self):
         pass

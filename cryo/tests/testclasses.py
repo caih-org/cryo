@@ -1,8 +1,8 @@
 from datetime import datetime
 from enum import Enum
 
-from cryo.metadata import Table, Column
-from cryo.datatypes import Text, One, Many, PythonObject
+from cryo.metadata import Table
+from cryo.datatypes import One, Many, PythonObject
 
 TestEnum = Enum('first', 'second', 'third')
 
