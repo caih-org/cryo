@@ -4,7 +4,8 @@ from datetime import datetime
 import random
 
 from cryo.session import Session
-from cryo.query import Select, Field
+from cryo.query import (Select, Field, WhereClause, CompareWhereClause,
+                        AndWhereClause, OrWhereClause)
 
 from ...tests.testclasses import (CompleteTestClass, TestEnum,
                                   ForeignKeyTestClass,
@@ -144,7 +145,7 @@ class BackendTestCaseMixin:
             testobj.integer = 2
             testobj.decimal = 3.0
             testobj.long = 4L
-            testobj.timestamp = datetime.now()
+            testobj.timestamp = datetime(10, 10, 10)
             testobj.pythonobject = True
             session.append(testobj)
 
@@ -264,17 +265,17 @@ class BackendTestCaseMixin:
 
         with Session(self.connection) as session:
             results = list(session.query(Select(CompleteTestClass)
-                                         .where(Field('name'), '=', 5)))
+                                         .where(Field('name') == 5)))
 
             self.assertEquals(len(results), 1)
 
             results = list(session.query(Select(CompleteTestClass)
-                                         .where(5, '=', Field('name'))))
+                                         .where(5 == Field('name'))))
 
             self.assertEquals(len(results), 1)
 
             results = list(session.query(Select(CompleteTestClass)
-                                         .where(Field('name'), '=',
+                                         .where(Field('name') ==
                                                 Field('name'))))
 
             self.assertEquals(len(results), 10)
@@ -284,13 +285,33 @@ class BackendTestCaseMixin:
 
             self.assertEquals(len(results), 0)
 
+    def test_query_field(self):
+        self.assertTrue(isinstance(Field('a') == 0, CompareWhereClause))
+        self.assertTrue(isinstance(Field('a') != 0, CompareWhereClause))
+        self.assertTrue(isinstance(Field('a') > 0, CompareWhereClause))
+        self.assertTrue(isinstance(Field('a') >= 0, CompareWhereClause))
+        self.assertTrue(isinstance(Field('a') < 0, CompareWhereClause))
+        self.assertTrue(isinstance(Field('a') <= 0, CompareWhereClause))
+
+        self.assertTrue(isinstance(0 == Field('a'), CompareWhereClause))
+
+        self.assertTrue(isinstance(Field('a') == Field('a'),
+                                   CompareWhereClause))
+
+    def test_query_whereclause(self):
+        self.assertTrue(isinstance((Field('a') == 0) and (Field('a') == 0),
+                                   AndWhereClause))
+
+        self.assertTrue(isinstance((Field('a') == 0) or (Field('a') == 0),
+                                   OrWhereClause))
+
     def test_query_where_or(self):
         self._fill_for_query()
 
         with Session(self.connection) as session:
             results = list(session.query(Select(CompleteTestClass)
-                                         .where(Field('name'), '=', 1)
-                                         .or_(Field('name'), '=', 2)))
+                                         .where(Field('name') == 1 or
+                                                Field('name') == 2)))
 
             self.assertEquals(len(results), 2)
 
@@ -298,17 +319,17 @@ class BackendTestCaseMixin:
         self._fill_for_query()
 
         with Session(self.connection) as session:
+            where = (Field('name') != 7) and (Field('name') > 5)
             results = list(session.query(Select(CompleteTestClass)
-                                         .where(Field('name'), '!=', 7)
-                                         .and_(Field('name'), '>', 5)))
+                                         .where(where)))
 
             self.assertEquals(len(results), 3)
 
+            where = (Field('name') == 7) and (Field('name') > 5)
             results = list(session.query(Select(CompleteTestClass)
-                                         .where(Field('name'), '=', 7)
-                                         .and_(Field('name'), '<', 5)))
+                                         .where(where)))
 
-            self.assertEquals(len(results), 0)
+            self.assertEquals(len(results), 1)
 
     def test_query_limit(self):
         self._fill_for_query()
