@@ -188,7 +188,7 @@ class BackendTestCaseMixin:
             self.assertTrue(testobj.one not in session)
             self.assertEquals(len(session), 1)
 
-            session.commit()
+            session.append(testobj.one)
 
             self.assertTrue(testobj in session)
             self.assertTrue(testobj.one in session)
@@ -196,40 +196,46 @@ class BackendTestCaseMixin:
 
         with Session(self.connection) as session:
             testobj_query = session.queryone(Select(ForeignKeyTestClass))
+
             self.assertTrue(testobj_query is not None)
+            self.assertTrue(testobj_query.one is not None)
             self.assertEquals(len(session), 2)
+
             del session[testobj_query]
 
         with Session(self.connection) as session:
             testobj_query = session.queryone(Select(ForeignKeyTestClass))
+
             self.assertTrue(testobj_query is None)
 
             testobj_query = session.queryone(Select(ForeignKeyTestClassOne))
+
             self.assertTrue(testobj_query is not None)
 
     def test_foreignkeys_many_add_delete(self):
         with Session(self.connection) as session:
             testobj = ForeignKeyTestClass('a')
             testobj.one = None
-            testobjmany_1 = ForeignKeyTestClassMany('c', testobj)
-            testobjmany_2 = ForeignKeyTestClassMany('d', testobj)
-
-            testobj.many = [testobjmany_1, testobjmany_2]
+            testobj.many = [ForeignKeyTestClassMany('c', testobj),
+                            ForeignKeyTestClassMany('d', testobj)]
 
             session.append(testobj)
+            session.append(testobj.many)
 
         with Session(self.connection) as session:
             testobj_query = session.queryone(Select(ForeignKeyTestClass))
+
             self.assertTrue(testobj_query is not None)
             self.assertEquals(len(session), 1)
+
             del session[testobj_query]
 
         with Session(self.connection) as session:
             testobj_query = session.queryone(Select(ForeignKeyTestClass))
             self.assertTrue(testobj_query is None)
 
-            testobj_query = session.queryone(Select(ForeignKeyTestClassOne))
-            self.assertTrue(testobj_query is not None)
+            results = session.query(Select(ForeignKeyTestClassMany))
+            self.assertEquals(len(list(results)), 2)
 
 
     ##########################

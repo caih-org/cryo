@@ -3,7 +3,6 @@ from UserDict import DictMixin
 from . import exceptions
 from . import util
 
-
 class Session(DictMixin):
 
     def __init__(self, connection, autocommit=True):
@@ -45,13 +44,35 @@ class Session(DictMixin):
     ##########################
     # CONTAINER
 
-    def append(self, obj, dirty=True, recursive=False):
-        if dirty:
-            self[self.gethashkey(obj)] = None
-        self[self.gethashkey(obj)] = obj
-        if recursive:
-            # TODO: add foreign key objs
-            pass
+    def append(self, *objs, **kwargs):
+        dirty = True
+        recursive = False
+
+        if 'dirty' in kwargs:
+            dirty = kwargs['dirty']
+
+        if 'recursive' in kwargs:
+            recursive = kwargs['recursive']
+
+        for obj in util.flatten(objs):
+            if obj is None:
+                continue
+
+            hashkey = self.gethashkey(obj)
+            recursive = recursive and (dirty or hashkey not in self)
+
+            if dirty:
+                self[hashkey] = None
+
+            self[hashkey] = obj
+
+            if recursive:
+                table = self.gettable(obj)
+                for foreignkey in table.foreignkeys.values():
+                    if foreignkey.datatype.autofetch:
+                        self.append(getattr(obj, foreignkey.name), dirty=False,
+                                    recursive=True)
+
 
     def remove(self, obj, delete=False):
         hashkey = self.gethashkey(obj)
@@ -118,11 +139,8 @@ class Session(DictMixin):
             return self.connectedbackend.get(table, hashkey)
 
     def queryone(self, query):
-        try:
-            obj = self.query(query).next()
-            return obj
-        except StopIteration:
-            return None 
+        results = list(self.query(query[:1]))
+        return len(results) > 0 and results[0] or None
 
     def query(self, query):
         objs = self.connectedbackend.query(query)

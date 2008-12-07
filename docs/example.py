@@ -134,7 +134,7 @@ def test(connection):
 
     with Session(connection) as session:
         a = session.queryone(Select(A).where(Field("name"), "LIKE", "a1")
-                             .orderby('name').limit(1))
+                             .orderby('name'))
 
         objsB = session.query(Select(B))
         for obj in objsB:

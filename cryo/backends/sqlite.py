@@ -120,7 +120,6 @@ class SQLiteConnectedBackend(StandardSQLConnectedBackend):
         obj = constructor()
         for name, column in table.columns.items():
             if isinstance(column.datatype, datatypes.One):
-                # TODO: check for autofetch
                 class_ = column.datatype.class_
                 value = self.session.get(class_, row[column.name])
                 setattr(obj, name, value)
@@ -143,5 +142,5 @@ class SQLiteConnectedBackend(StandardSQLConnectedBackend):
         self.connection.rollback()
 
     def disconnect(self):
+        self.connection
         self.connection.close()
-        self.connection = None

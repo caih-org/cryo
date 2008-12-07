@@ -36,8 +36,8 @@ class TableTestCase(unittest.TestCase):
                 self.assertEquals(len(table.foreignkeys), 1, table.foreignkeys)
 
             elif table.class_ == testclasses.ForeignKeyTestClassMany:
-                self.assertEquals(len(table.columns), 2, table.columns)
-                self.assertEquals(len(table.foreignkeys), 1, table.foreignkeys)
+                self.assertEquals(len(table.columns), 3, table.columns)
+                self.assertEquals(len(table.foreignkeys), 2, table.foreignkeys)
 
             else:
                 self.fail("Table %s should not exist" % table.name)
