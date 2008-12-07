@@ -21,7 +21,17 @@ class Select(Query):
         Query.__init__(self)
 
     def where(self, value=None, *args):
-        self.whereclause = args and CompareWhereClause(value, *args) or value
+        if args:
+            self.whereclause = CompareWhereClause(value, *args)
+        elif isinstance(value, WhereClause):
+            self.whereclause = value
+        elif value == True:
+            self.whereclause = CompareWhereClause(1, '=', 1)
+        elif value == False:
+            self.whereclause = CompareWhereClause(0, '=', 1)
+        else:
+            raise ValueError(value)
+
         return self
 
     def and_(self, value=None, *args):
@@ -55,11 +65,37 @@ class Field:
     def __init__(self, name):
         self.name = name
 
+    def __eq__(self, other):
+        return CompareWhereClause(self, '=', other)
+
+    def __ne__(self, other):
+        return CompareWhereClause(self, '!=', other)
+
+    def __gt__(self, other):
+        return CompareWhereClause(self, '>', other)
+
+    def __ge__(self, other):
+        return CompareWhereClause(self, '>=', other)
+
+    def __lt__(self, other):
+        return CompareWhereClause(self, '<', other)
+
+    def __le__(self, other):
+        return CompareWhereClause(self, '<=', other)
+
 
 class WhereClause(object):
 
     def __init__(self):
         pass
+
+    def __or__(self, other):
+        return OrWhereClause(self, other)
+    __ror__ = __or__
+
+    def __and__(self, other):
+        return AndWhereClause(self, other)
+    __rand__ = __or__
 
 
 class CompareWhereClause(WhereClause):
