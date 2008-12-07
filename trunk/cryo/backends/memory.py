@@ -1,6 +1,7 @@
 from .. import util
 from .. import exceptions
 from ..connection import Backend, ConnectedBackend
+from ..query import CompareWhereClause, AndWhereClause, OrWhereClause, Field
 
 
 class MemoryBackend(Backend):
@@ -54,25 +55,60 @@ class MemoryConnectedBackend(ConnectedBackend):
         count = 0
         start = select.limitclause and select.limitclause.start or 0
         end = select.limitclause and select.limitclause.end
-        for key, value in self.backend.values.items():
-            if isinstance(value, select.class_):
-                if self._where(value, select):
+        for key, obj in self.backend.values.items():
+            if isinstance(obj, select.class_):
+                if self._where(obj, select.whereclause):
                     if select.orderbyclauses:
-                        results.append(value)
+                        results.append(obj)
                     elif count >= start and (end is None or count < end):
-                        hashkey = self.gethashkey(value)
-                        self._values[hashkey] = value
-                        yield value
+                        hashkey = self.gethashkey(obj)
+                        self._values[hashkey] = obj
+                        yield obj
                         count += 1
 
-        for value in results[start:end]:
-            hashkey = self.gethashkey(value)
-            self._values[hashkey] = value
-            yield value
+        for obj in results[start:end]:
+            hashkey = self.gethashkey(obj)
+            self._values[hashkey] = obj
+            yield obj
 
-    def _where(self, value, select):
-        # TODO where(just use continue)
-        return True
+    def _where(self, obj, whereclause):
+        if whereclause is None:
+            return True
+        elif isinstance(whereclause, CompareWhereClause):
+            return self._compare(obj, whereclause)
+        elif isinstance(whereclause, AndWhereClause): 
+            return (self._where(obj, whereclause.whereclause1) and
+                    self._where(obj, whereclause.whereclause2))
+        elif isinstance(whereclause, OrWhereClause): 
+            return (self._where(obj, whereclause.whereclause1) or
+                    self._where(obj, whereclause.whereclause2))
+        else:
+            raise NotImplementedError(whereclause)
+
+    def _compare(self, obj, whereclause):
+        value1 = whereclause.value1
+        value2 = whereclause.value2
+
+        if isinstance(value1, Field):
+            value1 = getattr(obj, value1.name)
+
+        if isinstance(value2, Field):
+            value2 = getattr(obj, value2.name)
+
+        if whereclause.comparator == '='
+            return value1 == value2
+        elif whereclause.comparator == '>'
+            return value1 > value2
+        elif whereclause.comparator == '>='
+            return value1 >= value2
+        elif whereclause.comparator == '<'
+            return value1 < value2
+        elif whereclause.comparator == '<='
+            return value1 <= value2
+        elif whereclause.comparator == '!='
+            return value1 <= value2
+        else:
+            raise NotImplementedError(whereclause.comparator)
 
     def commit(self):
         util.QUERY_LOGGER.debug("COMMIT")
