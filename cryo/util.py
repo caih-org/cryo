@@ -117,12 +117,3 @@ def getclass(obj):
 
 def formatobj(obj):
     return "{\n\t%s\n}" % "\n\t".join(["%s:%s" % (a, getattr(obj,a)) for a in dir(obj)])
-
-
-def _test():
-    import doctest
-    doctest.testmod()
-
-
-if __name__ == "__main__":
-    _test()

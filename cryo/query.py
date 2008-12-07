@@ -45,8 +45,8 @@ class Select(Query):
                 self.orderbyclauses.append(OrderByClause(orderbyclause))
         return self
 
-    def limit(self, limit=None):
-        self.limitclause = LimitClause(limit)
+    def __getslice__(self, start=None, end=None):
+        self.limitclause = LimitClause(start, end)
         return self
 
 

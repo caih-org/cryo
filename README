@@ -2,3 +2,23 @@ Please read the INSTALL file before running these commands.
 
 See [EXAMPLE docs/example.py] for an example
 
+
+To run tests install proctor and coverage
+
+{{{
+sudo easy_install -U Proctor
+sudo easy_install -U coverage
+}}}
+
+The run:
+
+{{{
+proctorbatch cryo
+}}}
+
+To see coverage statistics:
+
+{{{
+find cryo -name "*.py" | egrep -v "(__init__|tests)" | xargs coverage -r -m
+}}}
+

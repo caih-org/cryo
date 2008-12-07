@@ -4,7 +4,7 @@ from datetime import datetime
 import random
 
 from cryo.session import Session
-from cryo.query import Select
+from cryo.query import Select, Field
 
 from ...tests.testclasses import (CompleteTestClass, TestEnum,
                                   ForeignKeyTestClass,
@@ -12,16 +12,7 @@ from ...tests.testclasses import (CompleteTestClass, TestEnum,
                                   ForeignKeyTestClassMany)
 
 
-class BackendTestCase:
-
-    def setUp(self):
-        # HACK: this is to suppress pylint errors while coding
-        self.connection = None
-        self.assertEquals = lambda: True
-        self.assertNotEquals = lambda: True
-        self.assertTrue = lambda: True
-        self.assertFalse = lambda: True
-        # end HACK
+class BackendTestCaseMixin:
 
     ##########################
     # SESSION
@@ -93,6 +84,7 @@ class BackendTestCase:
         with Session(self.connection) as session:
             testobj_query = session.queryone(Select(CompleteTestClass))
             self.assertTrue(testobj_query is not None)
+            self.assertTrue(testobj_query in session)
             del session[testobj_query]
 
         with Session(self.connection) as session:
@@ -242,5 +234,97 @@ class BackendTestCase:
     ##########################
     # QUERIES
 
-    def test_query(self):
-        pass
+    def test_get(self):
+        hashkey = None
+        with Session(self.connection) as session:
+            testobj = CompleteTestClass()
+            session.append(testobj)
+            hashkey = session.gethashkey(testobj)
+
+        with Session(self.connection) as session:
+            testobj_query = session.get(CompleteTestClass, hashkey)
+            self.assertTrue(testobj_query is not None)
+
+    def _fill_for_query(self):
+        with Session(self.connection) as session:
+            for a in range(10):
+                testobj = CompleteTestClass(str(a))
+                session.append(testobj)
+
+    def test_query_where_full(self):
+        self._fill_for_query()
+
+        with Session(self.connection) as session:
+            results = list(session.query(Select(CompleteTestClass)))
+
+            self.assertEquals(len(results), 10)
+
+    def test_query_where_field(self):
+        self._fill_for_query()
+
+        with Session(self.connection) as session:
+            results = list(session.query(Select(CompleteTestClass)
+                                         .where(Field('name'), '=', 5)))
+
+            self.assertEquals(len(results), 1)
+
+            results = list(session.query(Select(CompleteTestClass)
+                                         .where(5, '=', Field('name'))))
+
+            self.assertEquals(len(results), 1)
+
+            results = list(session.query(Select(CompleteTestClass)
+                                         .where(Field('name'), '=',
+                                                Field('name'))))
+
+            self.assertEquals(len(results), 10)
+
+            results = list(session.query(Select(CompleteTestClass)
+                                         .where(1, '=', 2)))
+
+            self.assertEquals(len(results), 0)
+
+    def test_query_where_or(self):
+        self._fill_for_query()
+
+        with Session(self.connection) as session:
+            results = list(session.query(Select(CompleteTestClass)
+                                         .where(Field('name'), '=', 1)
+                                         .or_(Field('name'), '=', 2)))
+
+            self.assertEquals(len(results), 2)
+
+    def test_query_where_and(self):
+        self._fill_for_query()
+
+        with Session(self.connection) as session:
+            results = list(session.query(Select(CompleteTestClass)
+                                         .where(Field('name'), '!=', 7)
+                                         .and_(Field('name'), '>', 5)))
+
+            self.assertEquals(len(results), 3)
+
+            results = list(session.query(Select(CompleteTestClass)
+                                         .where(Field('name'), '=', 7)
+                                         .and_(Field('name'), '<', 5)))
+
+            self.assertEquals(len(results), 0)
+
+    def test_query_limit(self):
+        self._fill_for_query()
+
+        with Session(self.connection) as session:
+            results = list(session.query(Select(CompleteTestClass)[2:5]))
+
+            self.assertEquals(len(results), 3)
+
+    def test_query_orderby(self):
+        self._fill_for_query()
+
+        with Session(self.connection) as session:
+            results = list(session.query(Select(CompleteTestClass)
+                                         .orderby('name')))
+
+            self.assertEquals(len(results), 10)
+            for a in range(10):
+                self.assertEquals(results[a].name, str(a))

@@ -89,7 +89,8 @@ class StandardSQLConnectedBackend(ConnectedBackend):
         if query.limitclause:
             queryparts .append("LIMIT %s" % query.limitclause.start)
             if query.limitclause.end:
-                queryparts.append(", %s" % query.limitclause.end)
+                queryparts.append(", %s" % (query.limitclause.end -
+                                            query.limitclause.start))
 
         return " ".join(queryparts), values
 

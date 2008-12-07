@@ -34,8 +34,7 @@ class MemoryConnectedBackend(ConnectedBackend):
 
     def delete(self, *objs):
         for obj in util.flatten(objs):
-            table = self.session.gettable(obj)
-            hashkey = self.gethashkey(obj) 
+            hashkey = self.gethashkey(obj)
             if hashkey in self._values:
                 util.QUERY_LOGGER.debug("DELETE %s => %s" % (hashkey, obj))
                 del self._values[hashkey]
@@ -57,16 +56,23 @@ class MemoryConnectedBackend(ConnectedBackend):
         end = select.limitclause and select.limitclause.end
         for key, value in self.backend.values.items():
             if isinstance(value, select.class_):
-                # TODO where(just use continue)
-                if True:
+                if self._where(value, select):
                     if select.orderbyclauses:
                         results.append(value)
                     elif count >= start and (end is None or count < end):
+                        hashkey = self.gethashkey(value)
+                        self._values[hashkey] = value
                         yield value
                         count += 1
 
-        for result in results[start : end]:
-            yield result
+        for value in results[start:end]:
+            hashkey = self.gethashkey(value)
+            self._values[hashkey] = value
+            yield value
+
+    def _where(self, value, select):
+        # TODO where(just use continue)
+        return True
 
     def commit(self):
         util.QUERY_LOGGER.debug("COMMIT")
