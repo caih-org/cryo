@@ -95,17 +95,17 @@ class MemoryConnectedBackend(ConnectedBackend):
         if isinstance(value2, Field):
             value2 = getattr(obj, value2.name)
 
-        if whereclause.comparator == '='
+        if whereclause.comparator == '=':
             return value1 == value2
-        elif whereclause.comparator == '>'
+        elif whereclause.comparator == '>':
             return value1 > value2
-        elif whereclause.comparator == '>='
+        elif whereclause.comparator == '>=':
             return value1 >= value2
-        elif whereclause.comparator == '<'
+        elif whereclause.comparator == '<':
             return value1 < value2
-        elif whereclause.comparator == '<='
+        elif whereclause.comparator == '<=':
             return value1 <= value2
-        elif whereclause.comparator == '!='
+        elif whereclause.comparator == '!=':
             return value1 <= value2
         else:
             raise NotImplementedError(whereclause.comparator)
