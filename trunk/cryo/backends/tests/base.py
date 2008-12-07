@@ -295,23 +295,23 @@ class BackendTestCaseMixin:
 
         self.assertTrue(isinstance(0 == Field('a'), CompareWhereClause))
 
-        self.assertTrue(isinstance(Field('a') == Field('a'),
+        self.assertTrue(isinstance(Field('a') == Field('b'),
                                    CompareWhereClause))
 
     def test_query_whereclause(self):
-        self.assertTrue(isinstance((Field('a') == 0) and (Field('a') == 0),
-                                   AndWhereClause))
+        query = (Field('a') == 0) & (Field('b') == 1)
+        self.assertTrue(isinstance(query, AndWhereClause))
 
-        self.assertTrue(isinstance((Field('a') == 0) or (Field('a') == 0),
-                                   OrWhereClause))
+        query = (Field('a') == 0) | (Field('b') == 1)
+        self.assertTrue(isinstance(query, OrWhereClause))
 
     def test_query_where_or(self):
         self._fill_for_query()
 
         with Session(self.connection) as session:
+            where = (Field('name') == 1) | (Field('name') == 2)
             results = list(session.query(Select(CompleteTestClass)
-                                         .where(Field('name') == 1 or
-                                                Field('name') == 2)))
+                                         .where(where)))
 
             self.assertEquals(len(results), 2)
 
@@ -319,13 +319,13 @@ class BackendTestCaseMixin:
         self._fill_for_query()
 
         with Session(self.connection) as session:
-            where = (Field('name') != 7) and (Field('name') > 5)
+            where = (Field('name') != 7) & (Field('name') > 5)
             results = list(session.query(Select(CompleteTestClass)
                                          .where(where)))
 
             self.assertEquals(len(results), 3)
 
-            where = (Field('name') == 7) and (Field('name') > 5)
+            where = (Field('name') == 7) & (Field('name') > 5)
             results = list(session.query(Select(CompleteTestClass)
                                          .where(where)))
 
