@@ -118,7 +118,7 @@ class StandardSQLConnectedBackend(ConnectedBackend):
     def _value(self, tablename, value1, value2):
         values = []
 
-        # TODO: wrap values
+        # TODO: wrap values using _todb?
         if not isinstance(value1, Field) and not isinstance(value2, Field):
             values = [value1, value2]
         elif not isinstance(value1, Field):
