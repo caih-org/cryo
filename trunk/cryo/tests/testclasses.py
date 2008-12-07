@@ -52,6 +52,7 @@ class ForeignKeyTestClassMany:
     def __init__(self, name='', foreignkeytest=None):
         self.name = name
         self.one = foreignkeytest or ForeignKeyTestClass()
+        self.one_autofetch = foreignkeytest or ForeignKeyTestClass()
 
 
 def gettables():
@@ -66,7 +67,9 @@ def gettables():
                                                      autofetch=True)}),
             Table(ForeignKeyTestClassOne,
                   primarykey=('name',),
-                  attributes={'one': One(ForeignKeyTestClass, inverse=True)}),
+                  attributes={'one': One(ForeignKeyTestClass, inverse='one')}),
             Table(ForeignKeyTestClassMany,
                   primarykey=('name',),
-                  attributes={'one': One(ForeignKeyTestClass, inverse=True)})]
+                  attributes={'one': One(ForeignKeyTestClass, inverse='many'),
+                              'one_autofetch': One(ForeignKeyTestClass,
+                                                   inverse='many_autofetch')})]

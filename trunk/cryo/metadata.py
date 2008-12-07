@@ -20,33 +20,29 @@ class Table(object):
             self.name = name or class_.__name__
             self.class_ = class_
             self.classname = util.fullname(class_)
-            self.columns, self.foreignkeys = self._generatecolumns(attributes)
+            self.columns = {}
+            self.foreignkeys = {}
+            self._generatecolumns(attributes)
             self.primarykey = primarykey or tuple(sorted(self.columns.keys()))
             if isinstance(self.primarykey, str):
                 self.primarykey = (self.primarykey, )
 
     def _generatecolumns(self, attributes):
-        columns = {}
-        foreignkeys = {}
-
         for attr, value in attributes.items():
             if isinstance(value, Column):
-                self._addcolumn(columns, foreignkeys, attr, value)
+                self._addcolumn(attr, value)
             else:
                 dbdatatype = guessdbdatatype(value)
                 if dbdatatype:
-                    self._addcolumn(columns, foreignkeys, attr,
-                                    Column(attr, dbdatatype))
+                    self._addcolumn(attr, Column(attr, dbdatatype))
 
-        return columns, foreignkeys
-
-    def _addcolumn(self, columns, foreignkeys, attr, column):
+    def _addcolumn(self, attr, column):
         if isinstance(column.datatype, ForeignKey):
-            foreignkeys[attr] = column
+            self.foreignkeys[attr] = column
 
         if (not isinstance(column.datatype, Many) and
             not isinstance(column.datatype, Unknown)):
-            columns[attr] = column
+            self.columns[attr] = column
 
 
 class Column(object):

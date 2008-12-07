@@ -35,13 +35,11 @@ class Select(Query):
         return self
 
     def and_(self, value=None, *args):
-        # TODO deprecated?
         whereclause = args and CompareWhereClause(value, *args) or value
         self.whereclause = AndWhereClause(self.whereclause, whereclause)
         return self
 
     def or_(self, value=None, *args):
-        # TODO deprecated?
         whereclause = args and CompareWhereClause(value, *args) or value
         self.whereclause = OrWhereClause(self.whereclause, whereclause)
         return self
@@ -57,7 +55,7 @@ class Select(Query):
                 self.orderbyclauses.append(OrderByClause(orderbyclause))
         return self
 
-    def __getslice__(self, start=None, end=None):
+    def __getslice__(self, start=0, end=None):
         self.limitclause = LimitClause(start, end)
         return self
 
@@ -134,6 +132,6 @@ class OrderByClause(object):
 
 class LimitClause(object):
 
-    def __init__(self, start=None, end=None):
+    def __init__(self, start=0, end=None):
         self.start = start
         self.end = end
