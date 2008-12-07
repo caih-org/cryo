@@ -4,11 +4,11 @@ import os.path
 
 from cryo.backends.memory import MemoryBackend
 
-from .base import BackendTestCase
+from .base import BackendTestCaseMixin
 from ...tests import testclasses
 
 
-class MemoryBackendTestCase(unittest.TestCase, BackendTestCase):
+class MemoryBackendTestCase(unittest.TestCase, BackendTestCaseMixin):
 
     def setUp(self):
         self.backend = MemoryBackend()
