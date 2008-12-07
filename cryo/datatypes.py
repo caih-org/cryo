@@ -13,6 +13,9 @@ class Datatype(object):
     def __repr__(self):
         return "%s()" % (util.fullname(self.__class__))
 
+    def type(self):
+        return lambda x: x
+
 
 class Unknown(Datatype):
 
@@ -25,6 +28,8 @@ class LongText(Datatype):
     def __init__(self):
         Datatype.__init__(self)
 
+    def type(self):
+        return str
 
 class Text(Datatype):
 
@@ -34,6 +39,9 @@ class Text(Datatype):
 
     def __repr__(self):
         return "%s(%s)" % (util.fullname(self.__class__), self.length)
+
+    def type(self):
+        return str
 
 
 class Number(Datatype):
@@ -52,11 +60,20 @@ class Number(Datatype):
         else:
             return Datatype.__repr__(self)
 
+    def type(self):
+        if decimals:
+            return float
+        else:
+            return int
+
 
 class Boolean(Number):
 
     def __init__(self):
         Number.__init__(self, 1)
+
+    def type(self):
+        return bool
 
 
 class Timestamp(Datatype):
