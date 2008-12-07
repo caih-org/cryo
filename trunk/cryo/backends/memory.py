@@ -57,58 +57,80 @@ class MemoryConnectedBackend(ConnectedBackend):
         end = select.limitclause and select.limitclause.end
         for key, obj in self.backend.values.items():
             if isinstance(obj, select.class_):
-                if self._where(obj, select.whereclause):
+                if self._where(obj, select.whereclause, table):
                     if select.orderbyclauses:
                         results.append(obj)
-                    elif count >= start and (end is None or count < end):
-                        hashkey = self.gethashkey(obj)
-                        self._values[hashkey] = obj
-                        yield obj
+                    else:
+                        if count >= start and (end is None or count < end):
+                            hashkey = self.gethashkey(obj)
+                            self._values[hashkey] = obj
+                            yield obj
                         count += 1
+
+        results.sort(cmp=self._orderby(select.orderbyclauses))
 
         for obj in results[start:end]:
             hashkey = self.gethashkey(obj)
             self._values[hashkey] = obj
             yield obj
 
-    def _where(self, obj, whereclause):
+    def _where(self, obj, whereclause, table):
         if whereclause is None:
             return True
         elif isinstance(whereclause, CompareWhereClause):
-            return self._compare(obj, whereclause)
+            return self._compare(obj, whereclause, table)
         elif isinstance(whereclause, AndWhereClause): 
-            return (self._where(obj, whereclause.whereclause1) and
-                    self._where(obj, whereclause.whereclause2))
+            return (self._where(obj, whereclause.whereclause1, table) and
+                    self._where(obj, whereclause.whereclause2, table))
         elif isinstance(whereclause, OrWhereClause): 
-            return (self._where(obj, whereclause.whereclause1) or
-                    self._where(obj, whereclause.whereclause2))
+            return (self._where(obj, whereclause.whereclause1, table) or
+                    self._where(obj, whereclause.whereclause2, table))
         else:
             raise NotImplementedError(whereclause)
 
-    def _compare(self, obj, whereclause):
+    def _compare(self, obj, whereclause, table):
         value1 = whereclause.value1
         value2 = whereclause.value2
+        type = int
 
-        if isinstance(value1, Field):
+        if isinstance(value1, Field) and isinstance(value2, Field):
+            type = table.columns[value1.name].datatype.type()
             value1 = getattr(obj, value1.name)
-
-        if isinstance(value2, Field):
             value2 = getattr(obj, value2.name)
+        elif isinstance(value1, Field):
+            type = table.columns[value1.name].datatype.type()
+            value1 = getattr(obj, value1.name)
+        elif isinstance(value2, Field):
+            type = value1.__class__
+            value2 = getattr(obj, value2.name)
+        else:
+            type = value1.__class__
 
         if whereclause.comparator == '=':
-            return value1 == value2
+            return type(value1) == type(value2)
         elif whereclause.comparator == '>':
-            return value1 > value2
+            return type(value1) > type(value2)
         elif whereclause.comparator == '>=':
-            return value1 >= value2
+            return type(value1) >= type(value2)
         elif whereclause.comparator == '<':
-            return value1 < value2
+            return type(value1) < type(value2)
         elif whereclause.comparator == '<=':
-            return value1 <= value2
+            return type(value1) <= type(value2)
         elif whereclause.comparator == '!=':
-            return value1 <= value2
+            return type(value1) != type(value2)
         else:
             raise NotImplementedError(whereclause.comparator)
+
+    def _orderby(self, orderbyclauses):
+        def cmp_(a, b):
+            for orderbyclause in orderbyclauses:
+                result = cmp(getattr(a, orderbyclause.field),
+                             getattr(b, orderbyclause.field))
+                if result:
+                    return result
+            return cmp(a, b)
+
+        return cmp_
 
     def commit(self):
         util.QUERY_LOGGER.debug("COMMIT")
