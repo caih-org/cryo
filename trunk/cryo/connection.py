@@ -1,4 +1,30 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+'''
+Copyright (C) 2008  César Izurieta
+
+This file is part of Cryo.
+
+Cryo is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+'''
+
 from __future__ import with_statement
+
+__author__ = "César Izurieta"
+__email__ = "cesar at caih dot org"
+__version__ = "$Revision$"[11:-2]
 
 import hashlib
 
@@ -6,18 +32,9 @@ from . import exceptions
 from . import util
 from .metadata import Table
 from .datatypes import LongText, PythonObject
-from .query import Select
 from .session import Session
 
 import cryo
-
-_TABLES_TABLE = Table(Table, name = '_cryo_tables',
-                      primarykey = ('name', ),
-                      attributes = {'name': LongText(),
-                                    'classname': LongText(),
-                                    'columns': PythonObject(),
-                                    'foreignkeys': PythonObject(),
-                                    'primarykey': PythonObject()})
 
 
 class Connection(object):
@@ -26,27 +43,11 @@ class Connection(object):
         self.backend = backend
         self.tables = {}
 
-    def readtables(self):
-        try:
-            self.tables[_TABLES_TABLE.classname] = _TABLES_TABLE
-            with Session(self) as session:
-                tables = dict([(table.classname, table)
-                               for table in session.query(Select(Table))])
-                for table in tables.values():
-                    table.class_ = eval(table.classname, self.backend.modules)
-                self.tables.update(tables)
-        except exceptions.TableDoesNotExist:
-            return False
-
-        return True
-
-    def inittables(self):
-        self.createtables(_TABLES_TABLE)
-
-    def createtables(self, *tables):
+    def setup(self, *tables):
+        # FIXME: check if we need to update!
         with Session(self) as session:
             for table in util.flatten(tables):
-                table = session.connectedbackend.createtable(table)
+                session.connectedbackend.createtable(table)
                 self.tables[table.classname] = table
 
 

@@ -1,10 +1,30 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+'''
+Copyright (C) 2008  César Izurieta
+
+This file is part of Cryo.
+
+Cryo is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+'''
 
 from __future__ import with_statement
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import generators
-from __future__ import nested_scopes
+
+__author__ = "César Izurieta"
+__email__ = "cesar at caih dot org"
+__version__ = "$Revision$"[11:-2]
 
 from datetime import datetime
 
@@ -63,39 +83,36 @@ def main():
 def init():
     connection = SQLiteBackend("example.sqlite", modules=[__import__(__name__)]).newconnection()
 
-    if not connection.readtables():
-        connection.inittables()
+    #########################
+    # A
+    a_table = Table(A, primarykey=('name',))
 
-        #########################
-        # A
-        a_table = Table(A, primarykey=('name',))
+    #########################
+    # B
+    b_table = Table(B,
+                    attributes={'name': Column('b_name', Text(2)),
+                                'a': One(A),
+                                'cs': Many(C),
+                                'status1': str,
+                                'status2': ""},
+                    primarykey=('name', 'a'))
 
-        #########################
-        # B
-        b_table = Table(B,
-                        attributes={'name': Column('b_name', Text(2)),
-                                    'a': One(A),
-                                    'cs': Many(C),
-                                    'status1': str,
-                                    'status2': ""},
-                        primarykey=('name', 'a'))
+    #########################
+    # C
+    c_table = Table(C, name='table_c', attributes={'excluded': None},
+                    primarykey=('name',))
 
-        #########################
-        # C
-        c_table = Table(C, name='table_c', attributes={'excluded': None},
-                        primarykey=('name',))
+    #########################
+    # D
+    d = D()
+    d.a = A()
+    d.bs = [B()]
+    d_table = Table(D, example=d, primarykey=('name', ))
+    d_table.columns['name'].name = 'd_name'
 
-        #########################
-        # D
-        d = D()
-        d.a = A()
-        d.bs = [B()]
-        d_table = Table(D, example=d, primarykey=('name', ))
-        d_table.columns['name'].name = 'd_name'
-
-        #########################
-        # CREATE TABLES
-        connection.createtables(a_table, b_table, c_table, d_table)
+    #########################
+    # CREATE TABLES
+    connection.setup(a_table, b_table, c_table, d_table)
 
     return connection
 
