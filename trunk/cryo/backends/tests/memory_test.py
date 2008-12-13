@@ -11,8 +11,4 @@ from ...tests import testclasses
 class MemoryBackendTestCase(unittest.TestCase, BackendTestCaseMixin):
 
     def setUp(self):
-        self.backend = MemoryBackend()
-        self.connection = self.backend.newconnection()
-        if not self.connection.readtables():
-            self.connection.inittables()
-            self.connection.createtables(testclasses.gettables())
+        self._setUp(MemoryBackend())
