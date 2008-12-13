@@ -1,10 +1,36 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+'''
+Copyright (C) 2008  César Izurieta
+
+This file is part of Cryo.
+
+Cryo is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+'''
+
 from __future__ import with_statement
+
+__author__ = "César Izurieta"
+__email__ = "cesar at caih dot org"
+__version__ = "$Revision$"[11:-2]
 
 from datetime import datetime
 import random
 
 from cryo.session import Session
-from cryo.query import (Select, Field, WhereClause, CompareWhereClause,
+from cryo.query import (Select, Field, CompareWhereClause,
                         AndWhereClause, OrWhereClause)
 
 from ...tests import testclasses
@@ -75,7 +101,7 @@ class SessionTestCaseMixin:
 
 class TransactionsTestCaseMixin:
 
-    def test_add_delete(self):
+    def test_add_delete_commit(self):
         with Session(self.connection) as session:
             testobj = CompleteTestClass()
             session.append(testobj)
@@ -107,6 +133,30 @@ class TransactionsTestCaseMixin:
 
 class DatatypesTestCaseMixin:
 
+    def test_datatypes(self):
+        testobj = CompleteTestClass()
+        with Session(self.connection) as session:
+            testobj.name = 'test'
+            testobj.boolean = not testobj.boolean
+            testobj.enum = TestEnum.second
+            testobj.text = "text_" + str(random.randint(1, 20))
+            testobj.longtext = "y" * 1000
+            testobj.integer = 2
+            testobj.decimal = 3.0
+            testobj.long = 4L
+            testobj.timestamp = datetime(10, 10, 10)
+            testobj.pythonobject = True
+            session.append(testobj)
+
+        with Session(self.connection) as session:
+            testobj_query = session.queryone(Select(CompleteTestClass))
+            for attr in ['name', 'boolean', 'text', 'longtext',
+                         'integer', 'decimal', 'long', 'timestamp',
+                         'pythonobject']:
+                self.assertEquals(getattr(testobj, attr),
+                                  getattr(testobj_query, attr))
+            self.assertEquals(testobj.enum.index, testobj_query.enum.index)
+
     def test_datatypes_excluded(self):
         testobj = CompleteTestClass()
         with Session(self.connection) as session:
@@ -132,34 +182,10 @@ class DatatypesTestCaseMixin:
                                   getattr(testobj_query, attr))
             self.assertEquals(testobj.enum.index, testobj_query.enum.index)
 
-    def test_datatypes(self):
-        testobj = CompleteTestClass()
-        with Session(self.connection) as session:
-            testobj.name = 'test'
-            testobj.boolean = not testobj.boolean
-            testobj.enum = TestEnum.second
-            testobj.text = "text_" + str(random.randint(1, 20))
-            testobj.longtext = "y" * 1000
-            testobj.integer = 2
-            testobj.decimal = 3.0
-            testobj.long = 4L
-            testobj.timestamp = datetime(10, 10, 10)
-            testobj.pythonobject = True
-            session.append(testobj)
-
-        with Session(self.connection) as session:
-            testobj_query = session.queryone(Select(CompleteTestClass))
-            for attr in ['name', 'boolean', 'text', 'longtext',
-                         'integer', 'decimal', 'long', 'timestamp',
-                         'pythonobject']:
-                self.assertEquals(getattr(testobj, attr),
-                                  getattr(testobj_query, attr))
-            self.assertEquals(testobj.enum.index, testobj_query.enum.index)
-
 
 class ForeignKeyTestCaseMixin:
 
-    def test_foreignkeys_one_none(self):
+    def test_foreignkey_one_none(self):
         with Session(self.connection) as session:
             testobj = ForeignKeyTestClass('a')
             testobj.one = None
@@ -177,7 +203,7 @@ class ForeignKeyTestCaseMixin:
             self.assertTrue(testobjone_query is None)
             self.assertEquals(len(session), 1)
 
-    def test_foreignkeys_one_add_delete(self):
+    def test_foreignkey_one_add_delete(self):
         with Session(self.connection) as session:
             testobj = ForeignKeyTestClass('a')
             session.append(testobj)
@@ -210,7 +236,7 @@ class ForeignKeyTestCaseMixin:
 
             self.assertTrue(testobj_query is not None)
 
-    def test_foreignkeys_many_add_delete(self):
+    def test_foreignkey_many_add_delete(self):
         with Session(self.connection) as session:
             testobj = ForeignKeyTestClass('a')
             testobj.one = None
@@ -238,8 +264,15 @@ class ForeignKeyTestCaseMixin:
 
 class QueryTestCaseMixin:
 
+    def _fill_for_query(self):
+        with Session(self.connection) as session:
+            for a in range(10):
+                testobj = CompleteTestClass(str(a))
+                session.append(testobj)
+
     def test_get(self):
         hashkey = None
+
         with Session(self.connection) as session:
             testobj = CompleteTestClass()
             session.append(testobj)
@@ -249,12 +282,6 @@ class QueryTestCaseMixin:
             testobj_query = session.get(CompleteTestClass, hashkey)
             self.assertTrue(testobj_query is not None)
 
-    def _fill_for_query(self):
-        with Session(self.connection) as session:
-            for a in range(10):
-                testobj = CompleteTestClass(str(a))
-                session.append(testobj)
-
     def test_query_where_full(self):
         self._fill_for_query()
 
@@ -263,32 +290,8 @@ class QueryTestCaseMixin:
 
             self.assertEquals(len(results), 10)
 
-    def test_query_where_field(self):
-        self._fill_for_query()
-
-        with Session(self.connection) as session:
-            results = list(session.query(Select(CompleteTestClass)
-                                         .where(Field('name') == 5)))
-
-            self.assertEquals(len(results), 1)
-
-            results = list(session.query(Select(CompleteTestClass)
-                                         .where(5 == Field('name'))))
-
-            self.assertEquals(len(results), 1)
-
-            results = list(session.query(Select(CompleteTestClass)
-                                         .where(Field('name') ==
-                                                Field('name'))))
-
-            self.assertEquals(len(results), 10)
-
-            results = list(session.query(Select(CompleteTestClass)
-                                         .where(1, '=', 2)))
-
-            self.assertEquals(len(results), 0)
-
-    def test_query_field(self):
+    def test_field(self):
+        # Basic comparisons
         self.assertTrue(isinstance(Field('a') == 0, CompareWhereClause))
         self.assertTrue(isinstance(Field('a') != 0, CompareWhereClause))
         self.assertTrue(isinstance(Field('a') > 0, CompareWhereClause))
@@ -296,19 +299,44 @@ class QueryTestCaseMixin:
         self.assertTrue(isinstance(Field('a') < 0, CompareWhereClause))
         self.assertTrue(isinstance(Field('a') <= 0, CompareWhereClause))
 
+        # The inverse should work too
         self.assertTrue(isinstance(0 == Field('a'), CompareWhereClause))
 
+        # Test with two fields
         self.assertTrue(isinstance(Field('a') == Field('b'),
                                    CompareWhereClause))
 
-    def test_query_whereclause(self):
+    def test_query_fieldcomparison(self):
+        self._fill_for_query()
+
+        with Session(self.connection) as session:
+            results = session.query(Select(CompleteTestClass)
+                                    .where(Field('name') == 5))
+
+            self.assertEquals(len(list(results)), 1)
+
+            results = session.query(Select(CompleteTestClass)
+                                    .where(5 == Field('name')))
+
+            self.assertEquals(len(list(results)), 1)
+
+            results = session.query(Select(CompleteTestClass)
+                                    .where(Field('name') == Field('name')))
+
+            self.assertEquals(len(list(results)), 10)
+
+            results = session.query(Select(CompleteTestClass).where(1, '=', 2))
+
+            self.assertEquals(len(list(results)), 0)
+
+    def test_query_where(self):
         query = (Field('a') == 0) & (Field('b') == 1)
         self.assertTrue(isinstance(query, AndWhereClause))
 
         query = (Field('a') == 0) | (Field('b') == 1)
         self.assertTrue(isinstance(query, OrWhereClause))
 
-    def test_query_where_or(self):
+    def test_query_or(self):
         self._fill_for_query()
 
         with Session(self.connection) as session:
@@ -318,7 +346,7 @@ class QueryTestCaseMixin:
 
             self.assertEquals(len(results), 2)
 
-    def test_query_where_and(self):
+    def test_query_and(self):
         self._fill_for_query()
 
         with Session(self.connection) as session:
@@ -361,6 +389,8 @@ class BackendTestCaseMixin(SessionTestCaseMixin, TransactionsTestCaseMixin,
     def _setUp(self, backend):
         self.backend = backend
         self.connection = self.backend.newconnection()
-        if not self.connection.readtables():
-            self.connection.inittables()
-            self.connection.createtables(testclasses.gettables())
+        self.connection.setup(testclasses.gettables())
+
+    def test_rerunsetup(self):
+        self.connection.setup(testclasses.gettables())
+
