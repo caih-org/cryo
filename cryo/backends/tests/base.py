@@ -7,16 +7,14 @@ from cryo.session import Session
 from cryo.query import (Select, Field, WhereClause, CompareWhereClause,
                         AndWhereClause, OrWhereClause)
 
+from ...tests import testclasses
 from ...tests.testclasses import (CompleteTestClass, TestEnum,
                                   ForeignKeyTestClass,
                                   ForeignKeyTestClassOne,
                                   ForeignKeyTestClassMany)
 
 
-class BackendTestCaseMixin:
-
-    ##########################
-    # SESSION
+class SessionTestCaseMixin:
 
     def test_session_empty(self):
         with Session(self.connection) as session:
@@ -74,8 +72,8 @@ class BackendTestCaseMixin:
 
             self.assertFalse(session.same(testobj1, testobj2))
 
-    ##########################
-    # DB TRANSACTIONS
+
+class TransactionsTestCaseMixin:
 
     def test_add_delete(self):
         with Session(self.connection) as session:
@@ -106,8 +104,8 @@ class BackendTestCaseMixin:
             session.rollback()
             self.assertTrue(testobj in session)
 
-    ##########################
-    # DATATYPES
+
+class DatatypesTestCaseMixin:
 
     def test_datatypes_excluded(self):
         testobj = CompleteTestClass()
@@ -158,8 +156,8 @@ class BackendTestCaseMixin:
                                   getattr(testobj_query, attr))
             self.assertEquals(testobj.enum.index, testobj_query.enum.index)
 
-    ##########################
-    # FOREIGN KEYS
+
+class ForeignKeyTestCaseMixin:
 
     def test_foreignkeys_one_none(self):
         with Session(self.connection) as session:
@@ -238,8 +236,7 @@ class BackendTestCaseMixin:
             self.assertEquals(len(list(results)), 2)
 
 
-    ##########################
-    # QUERIES
+class QueryTestCaseMixin:
 
     def test_get(self):
         hashkey = None
@@ -355,3 +352,15 @@ class BackendTestCaseMixin:
             self.assertEquals(len(results), 10)
             for a in range(10):
                 self.assertEquals(results[a].name, str(a))
+
+
+class BackendTestCaseMixin(SessionTestCaseMixin, TransactionsTestCaseMixin,
+                           DatatypesTestCaseMixin, ForeignKeyTestCaseMixin,
+                           QueryTestCaseMixin):
+
+    def _setUp(self, backend):
+        self.backend = backend
+        self.connection = self.backend.newconnection()
+        if not self.connection.readtables():
+            self.connection.inittables()
+            self.connection.createtables(testclasses.gettables())

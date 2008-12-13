@@ -11,9 +11,4 @@ class SQLiteBackendTestCase(unittest.TestCase, BackendTestCaseMixin):
 
     def setUp(self):
         filename = tempfile.mktemp()
-        self.backend = SQLiteBackend(filename, modules=[testclasses])
-        self.connection = self.backend.newconnection()
-        if not self.connection.readtables():
-            self.connection.inittables()
-            self.connection.createtables(testclasses.gettables())
-        
+        self._setUp(SQLiteBackend(filename, modules=[testclasses]))
