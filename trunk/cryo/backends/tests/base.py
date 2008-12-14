@@ -412,10 +412,9 @@ class QueryTestCaseMixin:
                 self.assertEquals(results[a].name, str(a))
 
 
-class BackendTestCaseMixin(#SessionTestCaseMixin, TransactionsTestCaseMixin,
-                           #DatatypesTestCaseMixin, ForeignKeyTestCaseMixin,
-                           #QueryTestCaseMixin):
-                           DatatypesTestCaseMixin):
+class BackendTestCaseMixin(SessionTestCaseMixin, TransactionsTestCaseMixin,
+                           DatatypesTestCaseMixin, ForeignKeyTestCaseMixin,
+                           QueryTestCaseMixin):
 
     def _setUp(self, backend):
         self.backend = backend
