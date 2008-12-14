@@ -48,10 +48,17 @@ class Session(DictMixin):
     def gethashkey(self, obj):
         return self.connectedbackend.gethashkey(obj)
 
+    def getfullhashkey(self, obj):
+        try:
+            return self.connectedbackend.getfullhashkey(obj)
+        except exceptions.NotMapped:
+            return 0
+
     def commit(self):
-        for value, hash_ in self._objs.values():
-            if hash(value) != hash_:
+        for value, fullhashkey in self._objs.values():
+            if self.getfullhashkey(value) != fullhashkey or True:
                 self.connectedbackend.insert(value)
+
         if self._deleted:
             self.connectedbackend.delete([value[0] for value in
                                           self._deleted.values()])
@@ -105,7 +112,7 @@ class Session(DictMixin):
         if hashkey in self._objs:
             del self._objs[hashkey]
         if delete:
-            self._deleted[hashkey] = (obj, hash(obj))
+            self._deleted[hashkey] = (obj, self.getfullhashkey(obj))
 
     def __getitem__(self, hashkey):
         return self._objs[hashkey][0]
@@ -114,13 +121,13 @@ class Session(DictMixin):
         if hashkey in self._objs:
             self._objs[hashkey] = (obj, self._objs[hashkey][1])
         else:
-            self._objs[hashkey] = (obj, hash(obj))
+            self._objs[hashkey] = (obj, self.getfullhashkey(obj))
 
     def __delitem__(self, obj):
         self.remove(obj, True)
 
     def __iter__(self):
-        return (obj for (obj, hash_) in self._objs.values())
+        return (obj for obj, fullhashkey in self._objs.values())
 
     def __contains__(self, obj):
         try:

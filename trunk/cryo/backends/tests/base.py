@@ -28,6 +28,7 @@ __version__ = "$Revision$"[11:-2]
 
 from datetime import datetime
 import random
+import math
 
 from cryo.session import Session
 from cryo.query import (Select, Field, CompareWhereClause,
@@ -133,54 +134,83 @@ class TransactionsTestCaseMixin:
 
 class DatatypesTestCaseMixin:
 
-    def test_datatypes(self):
+    def _test_datatype(self, attr, value1, value2):
         testobj = CompleteTestClass()
+
         with Session(self.connection) as session:
-            testobj.name = 'test'
-            testobj.boolean = not testobj.boolean
-            testobj.enum = TestEnum.second
-            testobj.text = "text_" + str(random.randint(1, 20))
-            testobj.longtext = "y" * 1000
-            testobj.integer = 2
-            testobj.decimal = 3.0
-            testobj.long = 4L
-            testobj.timestamp = datetime(10, 10, 10)
-            testobj.pythonobject = True
+            setattr(testobj, attr, value1)
             session.append(testobj)
 
         with Session(self.connection) as session:
             testobj_query = session.queryone(Select(CompleteTestClass))
-            for attr in ['name', 'boolean', 'text', 'longtext',
-                         'integer', 'decimal', 'long', 'timestamp',
-                         'pythonobject']:
-                self.assertEquals(getattr(testobj, attr),
-                                  getattr(testobj_query, attr))
-            self.assertEquals(testobj.enum.index, testobj_query.enum.index)
+
+            self.assertEquals(getattr(testobj_query, attr), value1)
+            self.assertNotEquals(getattr(testobj_query, attr), value2)
+
+            setattr(testobj_query, attr, value2)
+
+        with Session(self.connection) as session:
+            testobj_query = session.queryone(Select(CompleteTestClass))
+
+            self.assertEquals(getattr(testobj_query, attr), value2)
+            self.assertNotEquals(getattr(testobj_query, attr), value1)
+
+    def test_boolean(self):
+        self._test_datatype('boolean', True, False)
+
+    def test_enum(self):
+        self._test_datatype('enum', TestEnum.first, TestEnum.second)
+
+    def test_text(self):
+        self._test_datatype('text', 'text_1_' + str(random.randint(1, 20)),
+                            'text_2_' + str(random.randint(1, 20)))
+
+    def test_longetext(self):
+        self._test_datatype('longtext', 'y' * 1000, 'z' * 1000)
+
+    def test_number_integer(self):
+        self._test_datatype('integer', 12345, -67890)
+
+    def test_number_decimal(self):
+        self._test_datatype('decimal', 1.1, math.pi)
+
+    def test_number_long(self):
+        self._test_datatype('long', 1L, 1234567890L)
+
+    def test_timestamp(self):
+        self._test_datatype('timestamp', datetime(1983, 3, 1),
+                            datetime(10, 10, 10))
+
+    def test_pythonobject(self):
+        # FIXME: find better examples for python objects
+        self._test_datatype('pythonobject', True, datetime.now())
 
     def test_datatypes_excluded(self):
         testobj = CompleteTestClass()
+
         with Session(self.connection) as session:
             testobj.excluded = 'excluded'
             session.append(testobj)
 
         with Session(self.connection) as session:
             testobj_query = session.queryone(Select(CompleteTestClass))
-            self.assertNotEquals(testobj.excluded, testobj_query)
+
+            self.assertNotEquals(testobj.excluded, testobj_query.excluded)
 
     def test_datatypes_default(self):
         testobj = CompleteTestClass()
+
         with Session(self.connection) as session:
-            testobj.excluded = 'excluded'
             session.append(testobj)
 
         with Session(self.connection) as session:
             testobj_query = session.queryone(Select(CompleteTestClass))
-            for attr in ['name', 'boolean', 'text', 'longtext',
+
+            for attr in ['name', 'boolean', 'enum', 'text', 'longtext',
                          'integer', 'decimal', 'long', 'timestamp',
                          'pythonobject']:
                 self.assertEquals(getattr(testobj, attr),
                                   getattr(testobj_query, attr))
-            self.assertEquals(testobj.enum.index, testobj_query.enum.index)
 
 
 class ForeignKeyTestCaseMixin:
@@ -382,9 +412,10 @@ class QueryTestCaseMixin:
                 self.assertEquals(results[a].name, str(a))
 
 
-class BackendTestCaseMixin(SessionTestCaseMixin, TransactionsTestCaseMixin,
-                           DatatypesTestCaseMixin, ForeignKeyTestCaseMixin,
-                           QueryTestCaseMixin):
+class BackendTestCaseMixin(#SessionTestCaseMixin, TransactionsTestCaseMixin,
+                           #DatatypesTestCaseMixin, ForeignKeyTestCaseMixin,
+                           #QueryTestCaseMixin):
+                           DatatypesTestCaseMixin):
 
     def _setUp(self, backend):
         self.backend = backend
