@@ -1,0 +1,12 @@
+## Build ##
+
+```
+python setup.py build
+```
+
+## Installation ##
+
+```
+sudo python setup.py install
+```
+
